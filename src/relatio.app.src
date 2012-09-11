@@ -1,0 +1,20 @@
+{application, relatio, [
+	{description, "Web UI for xref."},
+	{vsn, "0.1.0"},
+	{modules, []},
+	{registered, [relatio_sup]},
+	{applications, [
+		kernel,
+		stdlib,
+		crypto,
+		public_key,
+		ssl,
+        mimetypes,
+		cowboy,
+        cowboy_static,
+        bullet,
+        jsx
+	]},
+    {mod, {relatio, []}},
+	{env, []}
+]}.
