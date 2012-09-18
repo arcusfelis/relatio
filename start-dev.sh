@@ -5,5 +5,5 @@ make
 exec erl -pa $PWD/ebin edit $PWD/deps/*/ebin -boot start_sasl \
     -sname relatio \
     -s relatio \
-#   -s reloader
+    -s ex_reloader
 

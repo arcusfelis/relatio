@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="js/jquery-latest.min.js" type="text/javascript"></script>
+<script src="js/sigma.min.js" type="text/javascript"></script>
+<script src="js/sigma.parseGexf.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+function init() {
+  var MIN_IMPORTANT_SIZE = 9;
+
+  // Add overlay node.
+  function addOverlayNode(node)
+  {
+    var o = $("<div>").addClass("overlay-node")
+          .css("left", node["displayX"]).css("top", node["displayY"]).css("background-color", node.color);
+    $("body").append(o);
+    return o;
+  }
+
+  // Instanciate sigma.js and customize rendering :
+  var sigInst = sigma.init(document.getElementById('graph-main')).drawingProperties({
+    defaultLabelColor: '#fff',
+    defaultLabelSize: 14,
+    defaultLabelBGColor: '#fff',
+    defaultLabelHoverColor: '#000',
+    labelThreshold: 6,
+    defaultEdgeType: 'curve',
+    font: 'Karla, Arial'
+  }).graphProperties({
+    minNodeSize: 0.5,
+    maxNodeSize: 5,
+    minEdgeSize: 1,
+    maxEdgeSize: 1
+  }).mouseProperties({
+    maxRatio: 32
+  });
+
+  sigInst.__proto__.zoomToNode = function(nid, zoom) {
+    this.position(0,0,1);
+    this.draw(2,2,2);
+    var nodes = this.getNodes([nid]);
+    var node = nodes[0];
+    if (!node) return;
+    this.zoomTo(node.displayX, node.displayY, zoom ? zoom : 20);
+  }
+
+  sigInst.__proto__.pickNode = function(nid) {
+    var s = this._core;
+    this.iterNodes(function(node) {
+      s.plotter.drawHoverNode(node);
+    }, [nid]);
+  }
+
+  sigInst.__proto__.unpickNode = function(nid) {
+    this.refresh();
+  }
+
+  sigInst.bind('downnodes', function(event) { 
+    var si = event.target; 
+    var ids = event.content;
+    var rcpnt_node_ids = [];
+    var donor_node_ids = [];
+
+    si.iterEdges(function(e) {
+        if (ids.indexOf(e.source) != -1) {
+            // This edge is out.
+            // The selected node calls the iterated node.
+            donor_node_ids.push(e.target);
+        }
+        else if (ids.indexOf(e.target) != -1) {
+            // This edge is in.
+            // The selected node is called by the iterated node.
+            rcpnt_node_ids.push(e.source);
+        }
+    });
+    var nodeIdsToHtml = function(nodes) {
+      var ul = $("<ul>");
+      si.iterNodes(function(n) {
+        var nid = n.id;
+        var li = $("<li>").append($("<a href='#'>").text(n.label)).css("color", n.color);
+        li.click(function() {
+          si.zoomToNode(nid);
+        });
+        li.mouseenter(function(){ si.pickNode(nid); });
+        li.mouseleave(function(){ si.unpickNode(nid); });
+        ul.append(li);
+      }, nodes);
+      return ul;
+    }
+    var ul_in  = nodeIdsToHtml(rcpnt_node_ids);
+    var ul_out = nodeIdsToHtml(donor_node_ids);
+
+    if (donor_node_ids.length > 0)
+    {
+        $("#directions-list-out").empty().append(ul_out);
+        $("#directions-out").show();
+    }
+    else
+    {
+        $("#directions-out").hide();
+    }
+
+    if (rcpnt_node_ids.length > 0)
+    {
+        $("#directions-list-in").empty().append(ul_in);
+        $("#directions-in").show();
+    }
+    else
+    {
+        $("#directions-in").hide();
+    }
+    $("body").addClass("directions-active"); 
+  });
+
+  // Parse a GEXF encoded file to fill the graph
+  // (requires "sigma.parseGexf.js" to be included)
+  sigInst.parseGexf('data/v-e-m.gexf');
+
+  // Draw the graph :
+  sigInst.draw();
+
+  $("#graph-directions").click(function(e) {
+    if (e.target.id == "graph-directions")
+      $("body").removeClass("directions-active"); 
+  });
+
+
+  var modSigInst = sigma.init(document.getElementById('graph-modules')).drawingProperties({
+    defaultLabelColor: '#fff',
+    defaultLabelSize: 14,
+    defaultLabelBGColor: '#fff',
+    defaultLabelHoverColor: '#000',
+    labelThreshold: 10,
+    defaultEdgeType: 'curve'
+  }).graphProperties({
+    minNodeSize: 0.5,
+    maxNodeSize: 5,
+    minEdgeSize: 1,
+    maxEdgeSize: 1
+  }).mouseProperties({
+    mouseEnabled: false
+  });
+
+  // Add border edges
+  modSigInst.addNode(1, {
+        'x': -1,
+        'y': -2,
+        'label' : "Left-Top",
+//      hidden: true,
+        color: "#F00"
+      });
+  modSigInst.addNode(2, {
+        'x': 40,
+        'y': 25,
+        'label' : "Right-Bottom",
+//      hidden: true,
+        color: "#F00"
+      });
+
+  // All other nodes will have X and Y beetween -1 .. 1
+  var nextModNodeId = 3;
+  var firstModNodeId = 3;
+
+  // Add large nodes (modules).
+  sigInst.iterNodes(function(node) {
+    if (node.size < MIN_IMPORTANT_SIZE)
+      return; // too small
+
+    var countX = 10;
+    var countY = 20;
+    var num = nextModNodeId - firstModNodeId;
+    var numX = parseInt(num / countY); // 0 .. 10
+    var numY = num % countY;           // 0 .. 10
+    modSigInst.addNode(nextModNodeId,{
+      'x':  numX,
+      'y': numY,
+      'size': node.size,
+      'hidden': true,
+      'label': node.label,
+      'realNodeId': node.id,
+      'color': node.color
+    });
+    nextModNodeId++;
+  });
+
+//modSigInst.position(, 10);
+   modSigInst.draw();
+
+  // By default, the events on the main node are not passed down.
+  // Add for all nodes on modules' canvas a special block above the main canvas.
+  modSigInst.iterNodes(function(node) {
+    var nid = node.id;
+    var realNid = node.attr["realNodeId"];
+    // Skip border nodes
+    if (nid < firstModNodeId)
+      return;
+    var o = addOverlayNode(node);
+    o.mouseenter(function(){ 
+        $("body").addClass("active-hover-modules");
+        modSigInst.pickNode(nid); 
+    });
+    o.mouseleave(function(){ 
+        $("body").removeClass("active-hover-modules");
+        modSigInst.unpickNode(nid); 
+    });
+
+    o.click(function() {
+        sigInst.zoomToNode(realNid, 5);
+    });
+  });
+
+  // Add a handler for "Modules" label.
+  $("#graph-modules-link").click(function(e) { 
+    $("body").toggleClass("active-modules");
+  });
+}
+if (document.addEventListener) {
+  document.addEventListener("DOMContentLoaded", init, false);
+} else {
+  window.onload = init;
+}
+</script>
+
+<style type="text/css">
+  @font-face {
+    font-family: 'Karla';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Karla'), local('Karla-Regular'), url(font/karla.woff) format('woff');
+  }
+
+  body {
+    font-family: Karla, Arial;
+    font-size: 14pt;
+  }
+
+  /* sigma.js context : */
+  #container {
+    background: #000;
+    height: 100%;
+    overflow: hidden;
+  }
+  #graph-main {
+    width: 100%;
+    height: 100%;
+    z-index: 2000;
+  }
+  #graph-directions { 
+    background: #000;
+    width: 300px; 
+    top: 0px; 
+    bottom: 0px;
+    position: absolute;
+    z-index: 9000;
+    right: 0px;
+    color: #FFF;
+    overflow: auto;
+    display: none;
+  }
+  .directions-active #graph-directions { 
+    display: block;
+  }
+  #graph-directions a { 
+      text-decoration: none;
+      color: inherit;
+  }
+  #graph-modules { 
+    width: 500px; 
+    height: 340px; 
+    position: absolute;
+    z-index: -1;
+  }
+  #graph-modules-link { 
+    margin-left: 2px;
+    margin-top: 2px;
+    position: absolute;
+    z-index: 9001;
+    color: white;
+  }
+  html, body
+  {margin: 0; padding: 0; height: 100%;}
+  .disable_mouse_selection {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: default;
+  }
+  .overlay-node {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    margin-left: -5px;
+    margin-top: -5px;
+    z-index: -1;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+  }
+  .active-modules .overlay-node {
+    z-index: 9050;
+  }
+  .active-hover-modules .overlay-node:hover {
+    z-index: 9500;
+  }
+  .active-hover-modules #graph-modules { 
+    z-index: 9200;
+  }
+</style>
+
+</head>
+<body>
+  <div id="container">
+    <div id="graph-modules-link" class="disable_mouse_selection">Modules</div>
+    <div id="graph-modules"></div>
+    <div id="graph-main"></div>
+    <div id="graph-directions">
+        <div id="directions-out">
+            Calls:
+            <div id="directions-list-out"></div>
+        </div>
+        <div id="directions-in">
+            Called by:
+            <div id="directions-list-in"></div>
+        </div>
+    </div>
+  </div>
+  ok
+</body>
+</html>
