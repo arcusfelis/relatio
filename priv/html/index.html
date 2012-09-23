@@ -6,6 +6,7 @@
 <script src="js/sigma.parseGexf.js" type="text/javascript"></script>
 
 <script type="text/javascript">
+<!--
 function init() {
   var MIN_IMPORTANT_SIZE = 9;
 
@@ -56,14 +57,100 @@ function init() {
     this.refresh();
   }
 
-  sigInst.bind('downnodes', function(event) { 
+  sigInst.__proto__.getNodeById = function(nid) {
+      var nodes = this.getNodes([nid]);
+      return nodes[0];
+  }
+
+  sigInst.__proto__.function2moduleNode = function(functionNode) {
+    var moduleNode;
+    var fid = functionNode.id;
+    var sig = this;
+    this.iterEdges(function(e) {
+        if ((e.attr.edge_type == "mf") && (e.source == fid))
+        {
+            // var s = sig.getNodeById(e.source);
+            // s.type == "module"
+            console.log("target " + e.target);
+            moduleNode = sig.getNodeById(e.target);
+        }
+    });
+    return moduleNode;
+  }
+
+  // elem is a DOM element.
+  // node is a sigma node.
+  function nodeToHtmlLink(si, node, elem)
+  {
+    var nid = node.id;
+    elem.append($("<a href='#'>").text(node.label));
+    elem.off(".show_node_label");
+    elem.on("click.show_node_label", function(e) {
+      // Capture a Shift and Click event with jQuery
+      if (e.shiftKey) {
+        activateNode({'target': si, 'content': [nid]});
+        return false;
+      }
+      si.zoomToNode(nid);
+    });
+    elem.on("mouseleave.show_node_label", function(){ 
+        si.unpickNode(nid);
+    });
+    elem.on("mouseenter.show_node_label", function(){ 
+        si.pickNode(nid);
+    });
+    return elem;
+  }
+
+  // Copy color from a node or an edge to DOM element.
+  function colorize(nodeOrEdge, elem)
+  {
+    elem.css("color", nodeOrEdge.color)
+    return elem;
+  }
+
+  var nodeIdsToHtml = function(si, nodes) {
+    var ul = $("<ul>");
+    si.iterNodes(function(node) {
+      var elem = colorize(node, $("<li>"));
+      var li = nodeToHtmlLink(si, node, elem);
+      ul.append(li);
+    }, nodes);
+    return ul;
+  }
+
+  // This function will be called, if a node was clicked.
+  var activateNode = function(event) { 
     var si = event.target; 
     var ids = event.content;
-    var rcpnt_node_ids = [];
-    var donor_node_ids = [];
+    var rcpnt_node_ids      = [];
+    var donor_node_ids      = [];
+    var module_node_ids     = [];
+    var function_node_ids   = [];
+
+    var node_id = ids[0];
+    var node = si.getNodeById(node_id);
+
+    $(".selected_elem_info").hide();
+
+    // Change the header
+    switch (node.attr.node_type)
+    {
+        case "module":
+            $("#selected_module_elem_info").show();
+            nodeToHtmlLink(si, node, $(".module_name").empty());
+            break;
+
+        // MFA
+        default:
+            var parent_node = si.function2moduleNode(node);
+            $("#selected_function_elem_info").show();
+            nodeToHtmlLink(si, node, $(".function_name").empty());
+            nodeToHtmlLink(si, parent_node, $(".module_name").empty());
+    }
 
     si.iterEdges(function(e) {
-        if (ids.indexOf(e.source) != -1) {
+        if ((ids.indexOf(e.source) != -1) && (e.attr.edge_type != "mf")) {
             // This edge is out.
             // The selected node calls the iterated node.
             donor_node_ids.push(e.target);
@@ -74,25 +161,18 @@ function init() {
             rcpnt_node_ids.push(e.source);
         }
     });
-    var nodeIdsToHtml = function(nodes) {
-      var ul = $("<ul>");
-      si.iterNodes(function(n) {
-        var nid = n.id;
-        var li = $("<li>").append($("<a href='#'>").text(n.label)).css("color", n.color);
-        li.click(function() {
-          si.zoomToNode(nid);
-        });
-        li.mouseenter(function(){ si.pickNode(nid); });
-        li.mouseleave(function(){ si.unpickNode(nid); });
-        ul.append(li);
-      }, nodes);
-      return ul;
+
+    switch (node.attr.node_type)
+    {
+        case "module":
+            function_node_ids = rcpnt_node_ids;
+            rcpnt_node_ids = [];
     }
-    var ul_in  = nodeIdsToHtml(rcpnt_node_ids);
-    var ul_out = nodeIdsToHtml(donor_node_ids);
+    
 
     if (donor_node_ids.length > 0)
     {
+        var ul_out = nodeIdsToHtml(si, donor_node_ids);
         $("#directions-list-out").empty().append(ul_out);
         $("#directions-out").show();
     }
@@ -103,6 +183,7 @@ function init() {
 
     if (rcpnt_node_ids.length > 0)
     {
+        var ul_in  = nodeIdsToHtml(si, rcpnt_node_ids);
         $("#directions-list-in").empty().append(ul_in);
         $("#directions-in").show();
     }
@@ -110,8 +191,21 @@ function init() {
     {
         $("#directions-in").hide();
     }
+
+    if (function_node_ids.length > 0)
+    {
+        var ul_in  = nodeIdsToHtml(si, function_node_ids);
+        $("#functions-list").empty().append(ul_in);
+        $("#functions").show();
+    }
+    else
+    {
+        $("#functions").hide();
+    }
+    
     $("body").addClass("directions-active"); 
-  });
+  }; // end of activateNode
+
 
   // Parse a GEXF encoded file to fill the graph
   // (requires "sigma.parseGexf.js" to be included)
@@ -120,12 +214,21 @@ function init() {
   // Draw the graph :
   sigInst.draw();
 
+  // The node was clicked.
+  sigInst.bind('downnodes', activateNode);
+
+
+
+
+
+  // Handler for closing the sidebar
   $("#graph-directions").click(function(e) {
     if (e.target.id == "graph-directions")
       $("body").removeClass("directions-active"); 
   });
 
 
+  // The other canvas for a list of modules
   var modSigInst = sigma.init(document.getElementById('graph-modules')).drawingProperties({
     defaultLabelColor: '#fff',
     defaultLabelSize: 14,
@@ -147,14 +250,14 @@ function init() {
         'x': -1,
         'y': -2,
         'label' : "Left-Top",
-//      hidden: true,
+        hidden: true,
         color: "#F00"
       });
   modSigInst.addNode(2, {
         'x': 40,
         'y': 25,
         'label' : "Right-Bottom",
-//      hidden: true,
+        hidden: true,
         color: "#F00"
       });
 
@@ -184,6 +287,11 @@ function init() {
     nextModNodeId++;
   });
 
+  // Hide module-function edges.
+  sigInst.iterEdges(function(edge) {
+    if (edge.attr.edge_type == "mf") edge.hidden = true;
+  });
+
 //modSigInst.position(, 10);
    modSigInst.draw();
 
@@ -199,10 +307,12 @@ function init() {
     o.mouseenter(function(){ 
         $("body").addClass("active-hover-modules");
         modSigInst.pickNode(nid); 
+        sigInst.pickNode(realNid); 
     });
     o.mouseleave(function(){ 
         $("body").removeClass("active-hover-modules");
         modSigInst.unpickNode(nid); 
+        sigInst.unpickNode(realNid); 
     });
 
     o.click(function() {
@@ -214,15 +324,25 @@ function init() {
   $("#graph-modules-link").click(function(e) { 
     $("body").toggleClass("active-modules");
   });
+
+  $("#graph-main canvas").each(function() {
+    this.addEventListener('dblclick', function(){ 
+    sigInst.position(0,0,1);
+    sigInst.draw(2,2,2);
+      sigInst.goTo(0, 0, 1);
+    });
+  });
+
+
+  $(".header-closed").click(function(e) { $(e.target).parent().addClass("active-block");  });
+  $(".header-open").click(function(e) { $(e.target).parent().removeClass("active-block");  });
 }
-if (document.addEventListener) {
-  document.addEventListener("DOMContentLoaded", init, false);
-} else {
-  window.onload = init;
-}
+$(document).ready(init);
+-->
 </script>
 
 <style type="text/css">
+<!--
   @font-face {
     font-family: 'Karla';
     font-style: normal;
@@ -261,9 +381,17 @@ if (document.addEventListener) {
   .directions-active #graph-directions { 
     display: block;
   }
-  #graph-directions a { 
+  #graph-directions a, #graph-modules-link a { 
       text-decoration: none;
       color: inherit;
+  }
+  #graph-directions a.header-closed,
+  #graph-modules-link a.header-closed {
+    color: #C0C0C0;
+  }
+  #graph-directions a.header-open, 
+  #graph-modules-link a.header-open {
+    color: #FFF;
   }
   #graph-modules { 
     width: 500px; 
@@ -308,22 +436,94 @@ if (document.addEventListener) {
   .active-hover-modules #graph-modules { 
     z-index: 9200;
   }
+
+  .selected_elem_info {
+      font-size: 16pt;
+      text-align: right;
+      padding: 6px;
+  }
+  .misc {
+      font-size: 80%;
+      /* For new line */
+      display: block;
+  }
+  #graph-directions ul {
+    margin: 0px;
+    padding: 0px;
+    margin-left: 5px;
+  }
+  #graph-directions > div {
+    padding: 10px;
+  }
+
+  .active-block .header-closed {
+    display: none;
+  }
+  .header-closed {
+    display: block;
+  }
+
+  .active-block .header-open {
+    display: block;
+  }
+  .header-open {
+    display: none;
+  }
+
+  .active-block .block-content {
+    display: block;
+  }
+   .block-content {
+    display: none;
+  }
+
+-->
 </style>
 
 </head>
 <body>
   <div id="container">
-    <div id="graph-modules-link" class="disable_mouse_selection">Modules</div>
+    <div id="graph-modules-link" class="disable_mouse_selection">
+      <a href="#" class="header-closed">Modules...</a>
+      <a href="#" class="header-open">Modules:</a>
+    </div>
     <div id="graph-modules"></div>
     <div id="graph-main"></div>
     <div id="graph-directions">
-        <div id="directions-out">
-            Calls:
-            <div id="directions-list-out"></div>
+        <div id="selected_function_elem_info" class="selected_elem_info">
+            Function <span class="function_name">FunctionName</span> 
+            <span class="misc">from 
+                <span class="module_name">ModuleName</span>
+            </span>
         </div>
-        <div id="directions-in">
-            Called by:
-            <div id="directions-list-in"></div>
+
+        <div id="selected_module_elem_info" class="selected_elem_info">
+            Module <span class="module_name">ModuleName</span>
+        </div>
+
+        <!--
+        <div id="modules">
+            Modules:
+            <div id="modules-list"></div>
+        </div>
+        -->
+
+        <div id="functions" class="active-block">
+            <a href="#" class="header-closed">Functions...</a>
+            <a href="#" class="header-open">Functions:</a>
+            <div id="functions-list" class="block-content"></div>
+        </div>
+
+        <div id="directions-out" class="active-block">
+            <a href="#" class="header-closed">Calls...</a>
+            <a href="#" class="header-open">Calls:</a>
+            <div id="directions-list-out" class="block-content"></div>
+        </div>
+
+        <div id="directions-in" class="active-block">
+            <a href="#" class="header-closed">Called by...</a>
+            <a href="#" class="header-open">Called by:</a>
+            <div id="directions-list-in" class="block-content"></div>
         </div>
     </div>
   </div>

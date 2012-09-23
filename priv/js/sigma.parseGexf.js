@@ -18,8 +18,8 @@ sigma.publicPrototype.parseGexf = function(gexfPath) {
 
   // Parse Attributes
   // This is confusing, so I'll comment heavily
-  var nodesAttributes = [];   // The list of attributes of the nodes of the graph that we build in json
-  var edgesAttributes = [];   // The list of attributes of the edges of the graph that we build in json
+  var nodesAttributes = {};   // The list of attributes of the nodes of the graph that we build in json
+  var edgesAttributes = {};   // The list of attributes of the edges of the graph that we build in json
   var attributesNodes = gexf.getElementsByTagName('attributes');  // In the gexf (that is an xml), the list of xml nodes 'attributes' (note the plural 's')
   
   for(i = 0; i<attributesNodes.length; i++){
@@ -33,8 +33,8 @@ sigma.publicPrototype.parseGexf = function(gexfPath) {
           title = attributeNode.getAttribute('title'),
           type = attributeNode.getAttribute('type');
         
-        var attribute = {id:id, title:title, type:type};
-        nodesAttributes.push(attribute);
+        var attribute = {title:title, type:type};
+        nodesAttributes[id] = attribute;
         
       }
     } else if(attributesNode.getAttribute('class') == 'edge'){
@@ -46,9 +46,8 @@ sigma.publicPrototype.parseGexf = function(gexfPath) {
           title = attributeNode.getAttribute('title'),
           type = attributeNode.getAttribute('type');
           
-        var attribute = {id:id, title:title, type:type};
-        edgesAttributes.push(attribute);
-        
+        var attribute = {title:title, type:type};
+        edgesAttributes[id] = attribute;
       }
     }
   }
@@ -105,7 +104,7 @@ sigma.publicPrototype.parseGexf = function(gexfPath) {
       }
       
       // Create Node
-      var node = {label:label, size:size, x:x, y:y, attributes:[], color:color};  // The graph node
+      var node = {label:label, size:size, x:x, y:y, color:color};  // The graph node
       
       // Attribute values
       var attvalueNodes = nodeNode.getElementsByTagName('attvalue');
@@ -113,7 +112,9 @@ sigma.publicPrototype.parseGexf = function(gexfPath) {
         var attvalueNode = attvalueNodes[k];
         var attr = attvalueNode.getAttribute('for');
         var val = attvalueNode.getAttribute('value');
-        node.attributes.push({attr:attr, val:val});
+        if (nodesAttributes[attr])
+            attr = nodesAttributes[attr].title;
+        node[attr] = val;
       }
 
       sigmaInstance.addNode(id,node);
@@ -135,8 +136,7 @@ sigma.publicPrototype.parseGexf = function(gexfPath) {
         id:         j,
         sourceID:   source,
         targetID:   target,
-        label:      label,
-        attributes: []
+        label:      label
       };
 
       var weight = edgeNode.getAttribute('weight');
@@ -149,7 +149,9 @@ sigma.publicPrototype.parseGexf = function(gexfPath) {
         var attvalueNode = attvalueNodes[k];
         var attr = attvalueNode.getAttribute('for');
         var val = attvalueNode.getAttribute('value');
-        edge.attributes.push({attr:attr, val:val});
+        if (edgesAttributes[attr])
+            attr = edgesAttributes[attr].title;
+        edge[attr] = val;
       }
 
       sigmaInstance.addEdge(edgeId++,source,target,edge);
