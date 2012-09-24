@@ -8,6 +8,21 @@
 <script type="text/javascript">
 <!--
 function init() {
+  var keyCodes = {
+      ESCAPE: 27,
+      H: 72,
+
+      J: 74,
+      K: 75,
+      L: 76,
+
+
+      ONE: 49,
+      NINE: 57,
+      ZERO: 48,
+      PLUS: 61,
+      MINUS: 109
+  };
   var MIN_IMPORTANT_SIZE = 9;
 
   // Add overlay node.
@@ -27,7 +42,7 @@ function init() {
     defaultLabelHoverColor: '#000',
     labelThreshold: 6,
     defaultEdgeType: 'curve',
-    font: 'Karla, Arial'
+    font: 'DejaVu Sans Mono, Arial'
   }).graphProperties({
     minNodeSize: 0.5,
     maxNodeSize: 5,
@@ -43,7 +58,13 @@ function init() {
     var nodes = this.getNodes([nid]);
     var node = nodes[0];
     if (!node) return;
-    this.zoomTo(node.displayX, node.displayY, zoom ? zoom : 20);
+    zoom = zoom ? zoom : 16;
+    switch (node.attr.node_type)
+    {
+        case "module":
+            zoom = 10;
+    }
+    this.zoomTo(node.displayX, node.displayY, zoom);
   }
 
   sigInst.__proto__.pickNode = function(nid) {
@@ -83,22 +104,24 @@ function init() {
   function nodeToHtmlLink(si, node, elem)
   {
     var nid = node.id;
-    elem.append($("<a href='#'>").text(node.label));
-    elem.off(".show_node_label");
-    elem.on("click.show_node_label", function(e) {
+    var a = $("<a href='#'>").text(node.label);
+    a.off(".show_node_label");
+    a.on("click.show_node_label", function(e) {
       // Capture a Shift and Click event with jQuery
       if (e.shiftKey) {
         activateNode({'target': si, 'content': [nid]});
         return false;
       }
       si.zoomToNode(nid);
+      return false;
     });
-    elem.on("mouseleave.show_node_label", function(){ 
+    a.on("mouseleave.show_node_label", function(){ 
         si.unpickNode(nid);
     });
-    elem.on("mouseenter.show_node_label", function(){ 
+    a.on("mouseenter.show_node_label", function(){ 
         si.pickNode(nid);
     });
+    elem.append(a);
     return elem;
   }
 
@@ -132,21 +155,28 @@ function init() {
     var node = si.getNodeById(node_id);
 
     $(".selected_elem_info").hide();
+    var active_header_block;
+    var focused_elem;
 
     // Change the header
     switch (node.attr.node_type)
     {
         case "module":
-            $("#selected_module_elem_info").show();
-            nodeToHtmlLink(si, node, $(".module_name").empty());
+            var activeHeaderBlock = $("#selected_module_elem_info").show();
+            var m_elem = $(".module_name", active_header_block).empty();
+            nodeToHtmlLink(si, node, m_elem);
+            var focused_elem = $("a", m_elem);
             break;
 
         // MFA
         default:
             var parent_node = si.function2moduleNode(node);
             $("#selected_function_elem_info").show();
-            nodeToHtmlLink(si, node, $(".function_name").empty());
-            nodeToHtmlLink(si, parent_node, $(".module_name").empty());
+            var fn_elem = $(".function_name", active_header_block).empty();
+            var m_elem = $(".module_name", active_header_block).empty();
+            nodeToHtmlLink(si, node, fn_elem);
+            nodeToHtmlLink(si, parent_node, m_elem);
+            var focused_elem = $("a", fn_elem);
     }
 
     si.iterEdges(function(e) {
@@ -202,8 +232,10 @@ function init() {
     {
         $("#functions").hide();
     }
-    
-    $("body").addClass("directions-active"); 
+    openDirectionSidebar();
+
+    // Set focus
+    focused_elem.focus();
   }; // end of activateNode
 
 
@@ -220,11 +252,96 @@ function init() {
 
 
 
+  var openDirectionSidebar = function() {
+    $("body").addClass("directions-active"); 
+  };
+
+  var closeDirectionSidebar = function() {
+    $("body").removeClass("directions-active"); 
+  };
+
+  var isDirectionSidebarOpen = function() {
+    return $("body").hasClass("directions-active");
+  };
+
+  var resetScale = function(){ 
+    sigInst.position(0, 0, 1);
+    sigInst.draw(2, 2, 2);
+    sigInst.goTo(0, 0, 1);
+  };
 
   // Handler for closing the sidebar
   $("#graph-directions").click(function(e) {
-    if (e.target.id == "graph-directions")
-      $("body").removeClass("directions-active"); 
+      closeDirectionSidebar();
+  });
+
+  var repeatCount = 0;
+  $(document).keydown(function(e) {
+    var m = sigInst._core.mousecaptor;
+    var s = sigInst._core;
+    var kc = e.keyCode;
+    switch (kc) {
+      case keyCodes.ESCAPE:
+        if (isDirectionSidebarOpen())
+          closeDirectionSidebar();
+        else
+          resetScale();
+        break;
+
+      case keyCodes.ZERO:
+        if (repeatCount == 0)
+          resetScale();
+        else
+          repeatCount *= 10;
+        break;
+
+      case keyCodes.H:
+        // right
+        var step = s.width / 150;
+        sigInst.goTo(step * (repeatCount || 1) + m.stageX, m.stageY);
+        repeatCount = 0;
+        break;
+
+      case keyCodes.L:
+        // left
+        var step = s.width / 150;
+        sigInst.goTo(-step * (repeatCount || 1) + m.stageX, m.stageY);
+        repeatCount = 0;
+        break;
+
+      case keyCodes.K:
+        // up
+        var step = s.height / 100;
+        sigInst.goTo(m.stageX, -step * (repeatCount || 1) + m.stageY);
+        repeatCount = 0;
+        break;
+
+      case keyCodes.J:
+        // down
+        var step = s.height / 100;
+        sigInst.goTo(m.stageX, step * (repeatCount || 1) + m.stageY);
+        repeatCount = 0;
+        break;
+
+      case keyCodes.PLUS:
+        var delta = 0.1 * (repeatCount || 1);
+        sigInst.zoomTo(s.width / 2, s.height / 2, m.ratio + delta);
+        repeatCount = 0;
+        break;
+
+      case keyCodes.MINUS:
+        var delta = 0.1 * (repeatCount || 1);
+        sigInst.zoomTo(s.width / 2, s.height / 2, m.ratio - delta);
+        repeatCount = 0;
+        break;
+
+      default:
+
+        if (kc >= keyCodes.ONE && kc <= keyCodes.NINE)
+            repeatCount = repeatCount * 10 + kc - keyCodes.ZERO;
+            
+        console.log("Key pressed: " + e.keyCode);
+    }
   });
 
 
@@ -292,7 +409,6 @@ function init() {
     if (edge.attr.edge_type == "mf") edge.hidden = true;
   });
 
-//modSigInst.position(, 10);
    modSigInst.draw();
 
   // By default, the events on the main node are not passed down.
@@ -321,21 +437,28 @@ function init() {
   });
 
   // Add a handler for "Modules" label.
-  $("#graph-modules-link").click(function(e) { 
+  $("#graph-modules-link a").click(function(e) { 
     $("body").toggleClass("active-modules");
   });
 
   $("#graph-main canvas").each(function() {
-    this.addEventListener('dblclick', function(){ 
-    sigInst.position(0,0,1);
-    sigInst.draw(2,2,2);
-      sigInst.goTo(0, 0, 1);
-    });
+    this.addEventListener('dblclick', resetScale);
   });
 
 
-  $(".header-closed").click(function(e) { $(e.target).parent().addClass("active-block");  });
-  $(".header-open").click(function(e) { $(e.target).parent().removeClass("active-block");  });
+  $(".header-closed").click(function(e) { 
+      var t = $(e.target);
+      var p = t.parent().addClass("active-block"); 
+      $("a:visible:first", p).focus();
+      return false;
+  });
+
+  $(".header-open").click(function(e) { 
+      var t = $(e.target);
+      var p = t.parent().removeClass("active-block"); 
+      $("a:visible:first", p).focus();
+      return false;
+  });
 }
 $(document).ready(init);
 -->
@@ -344,15 +467,16 @@ $(document).ready(init);
 <style type="text/css">
 <!--
   @font-face {
-    font-family: 'Karla';
+    font-family: 'DejaVu Sans Mono';
     font-style: normal;
     font-weight: 400;
-    src: local('Karla'), local('Karla-Regular'), url(font/karla.woff) format('woff');
+    src: local('DejaVu Sans Mono'), url(font/DejaVuSansMono.woff) format('woff');
   }
 
   body {
-    font-family: Karla, Arial;
-    font-size: 14pt;
+    font-family: DejaVu Sans Mono, Arial;
+    font-size: 13pt;
+    overflow: hidden;
   }
 
   /* sigma.js context : */
@@ -438,7 +562,7 @@ $(document).ready(init);
   }
 
   .selected_elem_info {
-      font-size: 16pt;
+      font-size: 14pt;
       text-align: right;
       padding: 6px;
   }
@@ -450,7 +574,7 @@ $(document).ready(init);
   #graph-directions ul {
     margin: 0px;
     padding: 0px;
-    margin-left: 5px;
+    margin-left: 14pt;
   }
   #graph-directions > div {
     padding: 10px;
@@ -527,6 +651,5 @@ $(document).ready(init);
         </div>
     </div>
   </div>
-  ok
 </body>
 </html>
