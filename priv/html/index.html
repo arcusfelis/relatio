@@ -1,9 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script src="js/jquery-latest.min.js" type="text/javascript"></script>
 <script src="js/sigma.min.js" type="text/javascript"></script>
 <script src="js/sigma.parseGexf.js" type="text/javascript"></script>
+
+
+<script src="js/jquery-latest.min.js" type="text/javascript"></script>
+<script src="js/jquery.mousewheel.js" type="text/javascript"></script>
+<script src="js/jquery.jscrollpane.js" type="text/javascript"></script>
+<script src="js/mwheelIntent.js" type="text/javascript"></script>
 
 <script type="text/javascript">
 <!--
@@ -49,7 +54,8 @@ function init() {
     minEdgeSize: 1,
     maxEdgeSize: 1
   }).mouseProperties({
-    maxRatio: 32
+    maxRatio: 32,
+    minRatio: 0.8
   });
 
   sigInst.__proto__.zoomToNode = function(nid, zoom) {
@@ -69,9 +75,22 @@ function init() {
 
   sigInst.__proto__.pickNode = function(nid) {
     var s = this._core;
-    this.iterNodes(function(node) {
-      s.plotter.drawHoverNode(node);
-    }, [nid]);
+    switch (typeof(nid))
+    {
+      case "number":
+      case "string":
+        this.iterNodes(function(node) {
+          s.plotter.drawHoverNode(node);
+        }, [nid]);
+        break;
+
+      case "object":
+        s.plotter.drawHoverNode(nid);
+        break;
+      
+      default:
+        console.error("Unknown type");
+    }
   }
 
   sigInst.__proto__.unpickNode = function(nid) {
@@ -180,12 +199,12 @@ function init() {
     }
 
     si.iterEdges(function(e) {
-        if ((ids.indexOf(e.source) != -1) && (e.attr.edge_type != "mf")) {
+        if (~ids.indexOf(e.source) && e.attr.edge_type != "mf") {
             // This edge is out.
             // The selected node calls the iterated node.
             donor_node_ids.push(e.target);
         }
-        else if (ids.indexOf(e.target) != -1) {
+        else if (~ids.indexOf(e.target)) {
             // This edge is in.
             // The selected node is called by the iterated node.
             rcpnt_node_ids.push(e.source);
@@ -254,11 +273,19 @@ function init() {
 
   var openDirectionSidebar = function() {
     $("body").addClass("directions-active"); 
+    $("body").removeClass("searching-active"); 
+    activateAutoResizeMonitor($("#graph-directions"));
   };
 
   var closeDirectionSidebar = function() {
     $("body").removeClass("directions-active"); 
+    $("#search_field").keyup();
   };
+
+  var closeSearchSidebar = function() {
+    $("body").removeClass("searching-active"); 
+  };
+
 
   var isDirectionSidebarOpen = function() {
     return $("body").hasClass("directions-active");
@@ -273,6 +300,10 @@ function init() {
   // Handler for closing the sidebar
   $("#graph-directions").click(function(e) {
       closeDirectionSidebar();
+  });
+
+  $("#search-results").click(function(e) {
+      closeSearchSidebar();
   });
 
   var repeatCount = 0;
@@ -453,12 +484,119 @@ function init() {
       return false;
   });
 
-  $(".header-open").click(function(e) { 
+  $(".header-opened").click(function(e) { 
       var t = $(e.target);
       var p = t.parent().removeClass("active-block"); 
       $("a:visible:first", p).focus();
       return false;
-  });
+   });
+  
+  var tryToSearch = function(e) {
+    var si = sigInst;
+    var needle = e.target.value;
+    var sidebar = $("#search-results");
+    // skip, if too short
+    if (needle.length < 4)
+        return;
+
+    var matched_module_node_ids = [];
+    var matched_function_node_ids = [];
+    si.iterNodes(function(n) {
+      // Is the needle a substring of the label?
+      // indexOf returns -1, if not found.
+      // ~-1 is 0.
+      if (~n.label.indexOf(needle))
+      {
+        switch (n.attr.node_type)
+        {
+          case "module":
+            matched_module_node_ids.push(n.id);
+            break;
+          default:
+            matched_function_node_ids.push(n.id);
+        }
+      }
+    });
+
+    // Nothing was found
+    if (!matched_module_node_ids.length && !matched_function_node_ids.length)
+        return;
+
+    if (matched_module_node_ids.length > 0)
+    {
+        var ul_mods = nodeIdsToHtml(si, matched_module_node_ids);
+        $("#modules-list", sidebar).empty().append(ul_mods);
+        $("#modules", sidebar).show();
+    }
+    else
+    {
+        $("#modules", sidebar).hide();
+    }
+
+    if (matched_function_node_ids.length > 0)
+    {
+        var ul_funs = nodeIdsToHtml(si, matched_function_node_ids);
+        $("#functions-list", sidebar).empty().append(ul_funs);
+        $("#functions", sidebar).show();
+    }
+    else
+    {
+        $("#functions", sidebar).hide();
+    }
+
+    $("body").addClass("searching-active"); 
+
+    activateAutoResizeMonitor($("#search-results"));
+  }; // end of tryToSearch
+
+  $("#search_field").keyup(tryToSearch);
+  $("#search-results, #graph-directions").jScrollPane({trackClickRepeatFreq: 20});
+
+    
+  var activateAutoResizeMonitor = function(area) {
+    var win = $(window);
+    var jsp = area.data("jsp");
+    var pane = $(".jspPane", area);
+
+    var windowHeight = win.height();
+    var containerHeight = pane.height();
+    var resized;
+
+    var intId;
+    intId = area.data("activateAutoResizeMonitorId");
+    if (intId)
+        clearInterval(intId);
+    console.log("Old interval: " + intId);
+    
+
+    jsp.reinitialise();
+    var reinit = function() {
+      jsp.reinitialise();
+      // Return context to initial position, if the horizontal scrollbar was removed.
+      pane.css({left: 0});
+        
+      // Prevent propagation
+      $("div.jspHorizontalBar, div.jspVerticalBar", area).on("click.preventProp", function(e) {
+        return false;
+      });
+    };
+    reinit();
+ 
+    intId = setInterval(function() {
+ 
+      if(windowHeight!=win.height() || containerHeight!=pane.height())
+      {
+        clearTimeout(resized);
+        resized = setTimeout(reinit, 100);
+      }
+ 
+      windowHeight = win.height();
+      containerHeight = pane.height();
+    }, 75);
+
+    area.data("activateAutoResizeMonitorId", intId);
+  };
+
 }
 $(document).ready(init);
 -->
@@ -491,33 +629,71 @@ $(document).ready(init);
     z-index: 2000;
   }
   #graph-directions { 
+    z-index: 9000;
     background: #000;
     width: 300px; 
     top: 0px; 
     bottom: 0px;
     position: absolute;
-    z-index: 9000;
     right: 0px;
     color: #FFF;
     overflow: auto;
     display: none;
   }
+
   .directions-active #graph-directions { 
     display: block;
   }
-  #graph-directions a, #graph-modules-link a { 
+
+
+  #search-results {
+    z-index: 9001;
+    background: #000;
+    width: 300px; 
+    top: 50px; 
+    bottom: 0px;
+    position: absolute;
+    right: 0px;
+    color: #FFF;
+    overflow: auto;
+    display: none;
+  }
+
+  .searching-active #search-results { 
+    display: block;
+  }
+
+  #search-pane { 
+    display: none;
+    background: #000;
+    width: 300px; 
+    height: 50px;
+    top: 0px; 
+    position: absolute;
+    right: 0px;
+    display: none;
+  }
+
+  .searching-active #search-pane {
+    display: block;
+  }
+
+  #graph-directions a, #graph-modules-link a, #search-results a { 
       text-decoration: none;
       color: inherit;
   }
+
   #graph-directions a.header-closed,
-  #graph-modules-link a.header-closed {
+  #graph-modules-link a.header-closed,
+  #search-results a.header-closed {
     color: #C0C0C0;
   }
-  #graph-directions a.header-open, 
-  #graph-modules-link a.header-open {
+  #graph-directions a.header-opened, 
+  #graph-modules-link a.header-opened,
+  #search-results a.header-opened {
     color: #FFF;
   }
-  #graph-modules { 
+  #graph-modules {
     width: 500px; 
     height: 340px; 
     position: absolute;
@@ -576,9 +752,6 @@ $(document).ready(init);
     padding: 0px;
     margin-left: 14pt;
   }
-  #graph-directions > div {
-    padding: 10px;
-  }
 
   .active-block .header-closed {
     display: none;
@@ -587,19 +760,138 @@ $(document).ready(init);
     display: block;
   }
 
-  .active-block .header-open {
+  .active-block .header-opened {
     display: block;
   }
-  .header-open {
+  .header-opened {
     display: none;
   }
 
-  .active-block .block-content {
+  .active-block .content-block {
     display: block;
   }
-   .block-content {
+  .content-block {
     display: none;
   }
+
+  #search_field {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 8000;
+    background: #000;
+    color: #CCC;
+    border: 1px solid #CCC;
+  }
+
+  .searching-active #search_field {
+    z-index: 9500;
+  }
+
+  #search_field:focus {
+    border: 1px solid #FFF;
+  }
+    
+
+
+/*
+ * CSS Styles that are needed by jScrollPane for it to operate correctly.
+ *
+ * Include this stylesheet in your site or copy and paste the styles below into your stylesheet - jScrollPane
+ * may not operate correctly without them.
+ */
+
+.jspContainer
+{
+    overflow: hidden;
+    position: relative;
+}
+
+.jspPane
+{
+    position: absolute;
+}
+
+.jspVerticalBar
+{
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 100%;
+}
+
+.jspHorizontalBar
+{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+}
+
+.jspVerticalBar *,
+.jspHorizontalBar *
+{
+    margin: 0;
+    padding: 0;
+}
+
+.jspCap
+{
+    display: none;
+}
+
+.jspHorizontalBar .jspCap
+{
+    float: left;
+}
+
+.jspTrack
+{
+    background: #000;
+    position: relative;
+
+    /* Opacity */
+    zoom: 1;
+    filter: alpha(opacity=80);
+    opacity: 0.8;
+}
+
+.jspTrack:hover
+{
+    filter: alpha(opacity=90);
+    opacity: 0.9;
+}
+
+.jspDrag
+{
+    background: #FFF;
+    position: relative;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+}
+
+.jspHorizontalBar .jspTrack,
+.jspHorizontalBar .jspDrag
+{
+    float: left;
+    height: 100%;
+}
+
+.jspCorner
+{
+    background: #000;
+    float: left;
+    height: 100%;
+}
+
+/* Yuk! CSS Hack for IE6 3 pixel bug :( */
+* html .jspCorner
+{
+    margin: 0 -3px 0 0;
+}
 
 -->
 </style>
@@ -609,7 +901,7 @@ $(document).ready(init);
   <div id="container">
     <div id="graph-modules-link" class="disable_mouse_selection">
       <a href="#" class="header-closed">Modules...</a>
-      <a href="#" class="header-open">Modules:</a>
+      <a href="#" class="header-opened">Modules:</a>
     </div>
     <div id="graph-modules"></div>
     <div id="graph-main"></div>
@@ -634,22 +926,41 @@ $(document).ready(init);
 
         <div id="functions" class="active-block">
             <a href="#" class="header-closed">Functions...</a>
-            <a href="#" class="header-open">Functions:</a>
-            <div id="functions-list" class="block-content"></div>
+            <a href="#" class="header-opened">Functions:</a>
+            <div id="functions-list" class="content-block"></div>
         </div>
 
         <div id="directions-out" class="active-block">
             <a href="#" class="header-closed">Calls...</a>
-            <a href="#" class="header-open">Calls:</a>
-            <div id="directions-list-out" class="block-content"></div>
+            <a href="#" class="header-opened">Calls:</a>
+            <div id="directions-list-out" class="content-block"></div>
         </div>
 
         <div id="directions-in" class="active-block">
             <a href="#" class="header-closed">Called by...</a>
-            <a href="#" class="header-open">Called by:</a>
-            <div id="directions-list-in" class="block-content"></div>
+            <a href="#" class="header-opened">Called by:</a>
+            <div id="directions-list-in" class="content-block"></div>
         </div>
     </div>
+
+
+    <div id="search-results">
+        <div id="modules" class="active-block">
+            <a href="#" class="header-closed">Modules...</a>
+            <a href="#" class="header-opened">Modules:</a>
+            <div id="modules-list" class="content-block"></div>
+        </div>
+
+        <div id="functions" class="active-block">
+            <a href="#" class="header-closed">Functions...</a>
+            <a href="#" class="header-opened">Functions:</a>
+            <div id="functions-list" class="content-block" class="content-block"></div>
+        </div>
+    </div>
+
+    <div id="search-pane"></div>
+
+    <input type="text" id="search_field" />
   </div>
 </body>
 </html>
