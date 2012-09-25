@@ -29,13 +29,13 @@ function init() {
       MINUS: 109
   };
   var MIN_IMPORTANT_SIZE = 9;
-
+  var overlayNodeContainer = $("#overlay-nodes");
   // Add overlay node.
   function addOverlayNode(node)
   {
     var o = $("<div>").addClass("overlay-node")
           .css("left", node["displayX"]).css("top", node["displayY"]).css("background-color", node.color);
-    $("body").append(o);
+    overlayNodeContainer.append(o);
     return o;
   }
 
@@ -58,19 +58,33 @@ function init() {
     minRatio: 0.8
   });
 
-  sigInst.__proto__.zoomToNode = function(nid, zoom) {
-    this.position(0,0,1);
-    this.draw(2,2,2);
+  sigInst.__proto__.zoomToNode = function(nid, ratio) {
+    var m = sigInst._core.mousecaptor;
+    var s = sigInst._core;
+//  this.position(0,0,1);
+//  this.draw(2,2,2);
     var nodes = this.getNodes([nid]);
     var node = nodes[0];
     if (!node) return;
-    zoom = zoom ? zoom : 16;
+    ratio = ratio ? ratio : 16;
     switch (node.attr.node_type)
     {
         case "module":
-            zoom = 10;
+            ratio = 10;
     }
-    this.zoomTo(node.displayX, node.displayY, zoom);
+
+//  console.log("node {" + node.displayX + ", " + node.displayY + "}");
+
+    var newX = node.displayX;
+    var newY = node.displayY;
+    // Different formulas for diffenent cases
+    if (ratio == m.ratio)
+    {
+        // TODO: dirty
+        newX = s.width - node.displayX; 
+        newY = s.height - node.displayY;
+    }
+    sigInst.zoomTo(newX, newY, ratio);
   }
 
   sigInst.__proto__.pickNode = function(nid) {
@@ -111,7 +125,6 @@ function init() {
         {
             // var s = sig.getNodeById(e.source);
             // s.type == "module"
-            console.log("target " + e.target);
             moduleNode = sig.getNodeById(e.target);
         }
     });
@@ -302,7 +315,7 @@ function init() {
       closeDirectionSidebar();
   });
 
-  $("#search-results").click(function(e) {
+  $("#search-pane").click(function(e) {
       closeSearchSidebar();
   });
 
@@ -371,7 +384,7 @@ function init() {
         if (kc >= keyCodes.ONE && kc <= keyCodes.NINE)
             repeatCount = repeatCount * 10 + kc - keyCodes.ZERO;
             
-        console.log("Key pressed: " + e.keyCode);
+     // console.log("Key pressed: " + e.keyCode);
     }
   });
 
@@ -495,9 +508,12 @@ function init() {
     var si = sigInst;
     var needle = e.target.value;
     var sidebar = $("#search-results");
-    // skip, if too short
-    if (needle.length < 4)
-        return;
+
+    // skip, if it is too short
+    if (needle.length < 4) {
+      $("body").removeClass("searching-active"); 
+      return;
+    }
 
     var matched_module_node_ids = [];
     var matched_function_node_ids = [];
@@ -518,9 +534,12 @@ function init() {
       }
     });
 
+
     // Nothing was found
-    if (!matched_module_node_ids.length && !matched_function_node_ids.length)
+    if (!matched_module_node_ids.length && !matched_function_node_ids.length) {
+        $("body").removeClass("searching-active"); 
         return;
+    }
 
     if (matched_module_node_ids.length > 0)
     {
@@ -549,6 +568,9 @@ function init() {
     activateAutoResizeMonitor($("#search-results"));
   }; // end of tryToSearch
 
+  $("#search_field").keydown(function(e) {
+    e.stopPropagation();
+  });
   $("#search_field").keyup(tryToSearch);
   $("#search-results, #graph-directions").jScrollPane({trackClickRepeatFreq: 20});
 
@@ -566,8 +588,6 @@ function init() {
     intId = area.data("activateAutoResizeMonitorId");
     if (intId)
         clearInterval(intId);
-    console.log("Old interval: " + intId);
-    
 
     jsp.reinitialise();
     var reinit = function() {
@@ -647,28 +667,20 @@ $(document).ready(init);
 
 
   #search-results {
-    z-index: 9001;
-    background: #000;
     width: 300px; 
-    top: 50px; 
-    bottom: 0px;
     position: absolute;
-    right: 0px;
+    bottom: 0px; 
+    top: 50px; 
     color: #FFF;
     overflow: auto;
-    display: none;
-  }
-
-  .searching-active #search-results { 
-    display: block;
   }
 
   #search-pane { 
     display: none;
     background: #000;
     width: 300px; 
-    height: 50px;
     top: 0px; 
+    bottom: 0px; 
     position: absolute;
     right: 0px;
     display: none;
@@ -943,24 +955,25 @@ $(document).ready(init);
         </div>
     </div>
 
+    <div id="search-pane">
+        <div id="search-results">
+            <div id="modules" class="active-block">
+                <a href="#" class="header-closed">Modules...</a>
+                <a href="#" class="header-opened">Modules:</a>
+                <div id="modules-list" class="content-block"></div>
+            </div>
 
-    <div id="search-results">
-        <div id="modules" class="active-block">
-            <a href="#" class="header-closed">Modules...</a>
-            <a href="#" class="header-opened">Modules:</a>
-            <div id="modules-list" class="content-block"></div>
-        </div>
-
-        <div id="functions" class="active-block">
-            <a href="#" class="header-closed">Functions...</a>
-            <a href="#" class="header-opened">Functions:</a>
-            <div id="functions-list" class="content-block" class="content-block"></div>
+            <div id="functions" class="active-block">
+                <a href="#" class="header-closed">Functions...</a>
+                <a href="#" class="header-opened">Functions:</a>
+                <div id="functions-list" class="content-block" class="content-block"></div>
+            </div>
         </div>
     </div>
 
-    <div id="search-pane"></div>
-
     <input type="text" id="search_field" />
+
+    <div id="overlay-nodes"></div>
   </div>
 </body>
 </html>
