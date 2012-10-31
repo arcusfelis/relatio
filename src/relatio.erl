@@ -12,8 +12,6 @@ start() ->
 	application:start(cowboy),
 	application:start(jsx),
 	application:start(bullet),
-	application:start(sendfile),
-	application:start(cowboy_static),
 	application:start(relatio).
 
 
@@ -23,6 +21,7 @@ start(_Type, _Args) ->
     HtmlDir = abs_path(filename:join([PrivDir, "html"])),
     FontDir = abs_path(filename:join([PrivDir, "font"])),
     BulletDir = abs_path(code:priv_dir(bullet)),
+    StaticFilesCfg = [{mimetypes, {fun mimetypes:path_to_mimes/2, default}}],
 
 	Dispatch = [
 		{'_', [
@@ -30,22 +29,18 @@ start(_Type, _Args) ->
                     [{handler, relatio_stream_handler}]},
 			{[<<"data">>, '...'], relatio_data_handler, []},
 			{[], relatio_default_handler, []},
-            cowboy_static:rule([
-                {dir, JsDir}, 
-                {prefix, "js"}, 
-                {sendfile, false}]),
-            cowboy_static:rule([
-                {dir, FontDir}, 
-                {prefix, "font"}, 
-                {sendfile, false}]),
-            cowboy_static:rule([
-                {dir, BulletDir}, 
-                {prefix, "bullet"}, 
-                {sendfile, false}]),
-            cowboy_static:rule([
-                {dir, HtmlDir}, 
-                {prefix, ""}, 
-                {sendfile, false}])
+
+            {[<<"js">>, '...'], cowboy_http_static,
+                 [{directory, JsDir}|StaticFilesCfg]},
+
+            {[<<"font">>, '...'], cowboy_http_static,
+                 [{directory, FontDir}|StaticFilesCfg]},
+
+            {[<<"bullet">>, '...'], cowboy_http_static,
+                 [{directory, BulletDir}|StaticFilesCfg]},
+
+            {['...'], cowboy_http_static,
+                 [{directory, HtmlDir}|StaticFilesCfg]}
 		]}
 	],
 	cowboy:start_listener(relatio_http, 100,

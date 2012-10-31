@@ -26,7 +26,8 @@ function init() {
       NINE: 57,
       ZERO: 48,
       PLUS: 61,
-      MINUS: 109
+      MINUS: 109,
+      SLASH: 191
   };
   var MIN_IMPORTANT_SIZE = 9;
   var overlayNodeContainer = $("#overlay-nodes");
@@ -49,7 +50,7 @@ function init() {
     defaultEdgeType: 'curve',
     font: 'DejaVu Sans Mono, Arial'
   }).graphProperties({
-    minNodeSize: 0.5,
+    minNodeSize: 1,
     maxNodeSize: 5,
     minEdgeSize: 1,
     maxEdgeSize: 1
@@ -286,14 +287,13 @@ function init() {
 
   var openDirectionSidebar = function() {
     $("body").addClass("directions-active"); 
-    $("body").removeClass("searching-active"); 
     activateAutoResizeMonitor($("#graph-directions"));
   };
 
   var closeDirectionSidebar = function() {
     $("body").removeClass("directions-active"); 
-    $("#search_field").keyup();
-  };
+    $(".searching-active #search_field").focus();
+  }
 
   var closeSearchSidebar = function() {
     $("body").removeClass("searching-active"); 
@@ -379,12 +379,19 @@ function init() {
         repeatCount = 0;
         break;
 
+      case keyCodes.SLASH:
+        $("#search_field").focus();
+        // TODO: select old text.
+        // Don't let this char be entrered in the search field.
+        return false;
+        break;
+
       default:
 
         if (kc >= keyCodes.ONE && kc <= keyCodes.NINE)
             repeatCount = repeatCount * 10 + kc - keyCodes.ZERO;
             
-     // console.log("Key pressed: " + e.keyCode);
+//      console.log("Key pressed: " + e.keyCode);
     }
   });
 
@@ -570,6 +577,12 @@ function init() {
 
   $("#search_field").keydown(function(e) {
     e.stopPropagation();
+    switch (e.keyCode)
+    {
+      case keyCodes.ESCAPE:
+      $("#graph-modules-link a:visible").focus();
+      $("body").removeClass("searching-active"); 
+    }
   });
   $("#search_field").keyup(tryToSearch);
   $("#search-results, #graph-directions").jScrollPane({trackClickRepeatFreq: 20});
@@ -690,6 +703,11 @@ $(document).ready(init);
     display: block;
   }
 
+  .directions-active #search-pane,
+  .directions-active #search_field {
+    display: none;
+  }
+
   #graph-directions a, #graph-modules-link a, #search-results a { 
       text-decoration: none;
       color: inherit;
@@ -704,8 +722,7 @@ $(document).ready(init);
   #graph-modules-link a.header-opened,
   #search-results a.header-opened {
     color: #FFF;
-  }
-  #graph-modules {
+  } #graph-modules {
     width: 500px; 
     height: 340px; 
     position: absolute;

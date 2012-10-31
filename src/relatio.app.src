@@ -11,7 +11,6 @@
 		ssl,
         mimetypes,
 		cowboy,
-        cowboy_static,
         bullet,
         jsx
 	]},
