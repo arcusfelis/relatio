@@ -13,6 +13,25 @@
 <script type="text/javascript">
 <!--
 function init() {
+  var current_node_id, current_node_ids;
+  sigma.publicPrototype.showAllNodes = function() {
+     this.iterNodes(function(n) {
+        n.hidden = false;
+     });
+  }
+
+  sigma.publicPrototype.showNodes = function(node_ids) {
+     this.iterNodes(function(n) {
+        n.hidden = false;
+     }, node_ids);
+  }
+
+  sigma.publicPrototype.hideAllNodes = function() {
+     this.iterNodes(function(n) {
+        n.hidden = true;
+     });
+  }
+
   var keyCodes = {
       ESCAPE: 27,
       H: 72,
@@ -20,6 +39,7 @@ function init() {
       J: 74,
       K: 75,
       L: 76,
+      N: 78,
 
 
       ONE: 49,
@@ -175,6 +195,39 @@ function init() {
     return ul;
   }
 
+  var moduleIds2functionsIds = function(si, module_ids) {
+    var function_node_ids = [];
+    si.iterEdges(function(e) {
+        if (e.attr.edge_type == "mf" && ~module_ids.indexOf(e.target)) {
+            function_node_ids.push(e.source);
+        }
+    });
+    return function_node_ids;
+  }
+
+  var functionIds2functionIds = function(si, ids) {
+    var function_node_ids = [];
+    si.iterEdges(function(e) {
+        if (!e.attr.edge_type) // call edge
+        {
+          if (~ids.indexOf(e.target))
+            function_node_ids.push(e.source);
+          else if (~ids.indexOf(e.source))
+            function_node_ids.push(e.target);
+        }
+    });
+    return function_node_ids;
+  }
+
+  var functionIds2modulesIds = function(si, function_ids) {
+    var module_ids = [];
+    si.iterEdges(function(e) {
+        if (e.attr.edge_type == "mf" && ~function_ids.indexOf(e.source)) 
+          module_ids.push(e.target);
+    });
+    return module_ids;
+  }
+
   // This function will be called, if a node was clicked.
   var activateNode = function(event) { 
     var si = event.target; 
@@ -183,6 +236,7 @@ function init() {
     var donor_node_ids      = [];
     var module_node_ids     = [];
     var function_node_ids   = [];
+    var visible_node_ids    = [];
 
     var node_id = ids[0];
     var node = si.getNodeById(node_id);
@@ -199,6 +253,10 @@ function init() {
             var m_elem = $(".module_name", active_header_block).empty();
             nodeToHtmlLink(si, node, m_elem);
             var focused_elem = $("a", m_elem);
+
+            // Change a current set of nodes
+            current_node_id = node.id;
+            current_node_ids = module_ids;
             break;
 
         // MFA
@@ -210,28 +268,67 @@ function init() {
             nodeToHtmlLink(si, node, fn_elem);
             nodeToHtmlLink(si, parent_node, m_elem);
             var focused_elem = $("a", fn_elem);
+
+            // Change a current set of nodes
+            current_node_id = node.id;
+            // Get brothers of the function node.
+            current_node_ids = moduleIds2functionsIds(si, [parent_node.id]);
     }
 
-    si.iterEdges(function(e) {
-        if (~ids.indexOf(e.source) && e.attr.edge_type != "mf") {
-            // This edge is out.
-            // The selected node calls the iterated node.
-            donor_node_ids.push(e.target);
-        }
-        else if (~ids.indexOf(e.target)) {
-            // This edge is in.
-            // The selected node is called by the iterated node.
-            rcpnt_node_ids.push(e.source);
-        }
-    });
 
     switch (node.attr.node_type)
     {
         case "module":
-            function_node_ids = rcpnt_node_ids;
-            rcpnt_node_ids = [];
+            si.iterEdges(function(e) {
+                    switch (e.attr.edge_type)
+                    {
+                    case "mf":
+                        if (~ids.indexOf(e.target)) {
+                            function_node_ids.push(e.source);
+                        }
+                        break;
+                    case "mm":
+                        if (~ids.indexOf(e.source)) {
+                            // This edge is out.
+                            // The selected node calls the iterated node.
+                            donor_node_ids.push(e.target);
+                        }
+                        else if (~ids.indexOf(e.target)) {
+                            // This edge is in.
+                            // The selected node is called by the iterated node.
+                            rcpnt_node_ids.push(e.source);
+                        }
+                    }
+            });
+            var module_node_ids = ids.concat(donor_node_ids).concat(rcpnt_node_ids);
+            visible_node_ids = function_node_ids.concat(module_node_ids)
+//              .concat(moduleIds2functionsIds(si, module_node_ids));
+                .concat(functionIds2functionIds(si, function_node_ids));
+            break;
+
+
+        // function
+        default:
+            si.iterEdges(function(e) {
+                if (~ids.indexOf(e.source) && e.attr.edge_type != "mf") {
+                    // This edge is out.
+                    // The selected node calls the iterated node.
+                    donor_node_ids.push(e.target);
+                }
+                else if (~ids.indexOf(e.target)) {
+                    // This edge is in.
+                    // The selected node is called by the iterated node.
+                    rcpnt_node_ids.push(e.source);
+                }
+            });
+            var function_ids = ids.concat(donor_node_ids).concat(rcpnt_node_ids);
+            visible_node_ids = function_ids
+                             .concat(functionIds2modulesIds(si, function_ids));
     }
-    
+
+    si.hideAllNodes();
+    si.showNodes(visible_node_ids);
+    si.draw();
 
     if (donor_node_ids.length > 0)
     {
@@ -291,12 +388,16 @@ function init() {
   };
 
   var closeDirectionSidebar = function() {
+    sigInst.showAllNodes();
+    sigInst.draw();
     $("body").removeClass("directions-active"); 
     $(".searching-active #search_field").focus();
   }
 
-  var closeSearchSidebar = function() {
-    $("body").removeClass("searching-active"); 
+  var closeSearchSidebar = function(save_socus) {
+      if (!save_socus)
+          $("#graph-modules-link a:visible").focus();
+      $("body").removeClass("searching-active"); 
   };
 
 
@@ -364,6 +465,14 @@ function init() {
         // down
         var step = s.height / 100;
         sigInst.goTo(m.stageX, step * (repeatCount || 1) + m.stageY);
+        repeatCount = 0;
+        break;
+
+      case keyCodes.N:
+        // next
+        var offset = (e.shiftKey ? -1 : 1) * (repeatCount || 1);
+        var next_node_id = nextNode(offset, current_node_id, current_node_ids);
+        activateNode({'target': sigInst, 'content': [next_node_id]});
         repeatCount = 0;
         break;
 
@@ -435,8 +544,10 @@ function init() {
 
   // Add large nodes (modules).
   sigInst.iterNodes(function(node) {
-    if (node.size < MIN_IMPORTANT_SIZE)
-      return; // too small
+//  if (node.size < MIN_IMPORTANT_SIZE)
+//    return; // too small
+    if (node.attr.node_type != "module")
+      return;
 
     var countX = 10;
     var countY = 20;
@@ -518,7 +629,7 @@ function init() {
 
     // skip, if it is too short
     if (needle.length < 4) {
-      $("body").removeClass("searching-active"); 
+      closeSearchSidebar(true);
       return;
     }
 
@@ -544,7 +655,7 @@ function init() {
 
     // Nothing was found
     if (!matched_module_node_ids.length && !matched_function_node_ids.length) {
-        $("body").removeClass("searching-active"); 
+        closeSearchSidebar(true);
         return;
     }
 
@@ -580,8 +691,7 @@ function init() {
     switch (e.keyCode)
     {
       case keyCodes.ESCAPE:
-      $("#graph-modules-link a:visible").focus();
-      $("body").removeClass("searching-active"); 
+      closeSearchSidebar();
     }
   });
   $("#search_field").keyup(tryToSearch);
@@ -630,6 +740,32 @@ function init() {
     area.data("activateAutoResizeMonitorId", intId);
   };
 
+
+
+  var module_ids = [];
+  // Add nodes index for n and N keys
+  sigInst.iterNodes(function(node) {
+//    activateNode({target: this, context: [node.id]});
+      switch (node.attr.node_type)
+      {
+        case "module":
+          module_ids.push(node.id);
+      }
+  });
+
+  // Set modules as current nodes
+  current_node_id = module_ids[0];
+  current_node_ids = module_ids;
+
+
+  // Move from id on `offset` nodes forward using ids as an index,
+  function nextNode(offset, id, ids)
+  {
+    var currect_index = ids.indexOf(id);
+    // circled
+    var new_index = (currect_index + offset) % ids.length;
+    return ids[new_index];
+  }
 }
 $(document).ready(init);
 -->
@@ -960,14 +1096,14 @@ $(document).ready(init);
         </div>
 
         <div id="directions-out" class="active-block">
-            <a href="#" class="header-closed">Calls...</a>
-            <a href="#" class="header-opened">Calls:</a>
+            <a href="#" class="header-closed">Calls to...</a>
+            <a href="#" class="header-opened">Calls to:</a>
             <div id="directions-list-out" class="content-block"></div>
         </div>
 
         <div id="directions-in" class="active-block">
-            <a href="#" class="header-closed">Called by...</a>
-            <a href="#" class="header-opened">Called by:</a>
+            <a href="#" class="header-closed">Called from...</a>
+            <a href="#" class="header-opened">Called from:</a>
             <div id="directions-list-in" class="content-block"></div>
         </div>
     </div>

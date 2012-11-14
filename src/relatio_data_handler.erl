@@ -29,7 +29,9 @@ generate_xml() ->
     {ok, Xref} = xref:start(relatio_ex1),
 %   xref:add_application(Xref, code:lib_dir(gexf)),
 %   xref:add_application(Xref, "/home/user/erlang/database/riak_core"),
-    xref:add_application(Xref, code:lib_dir(mnesia)),
+%   xref:add_application(Xref, "/home/user/erlang/unicode/ux"),
+    xref:add_application(Xref, "/home/user/erlang/torrent/etorrent_core"),
+%   xref:add_application(Xref, code:lib_dir(mnesia)),
 %   xref:add_application(Xref, code:lib_dir(snmp)),
     try
         gexf:to_string(gexf_xref:'e-v-m'(Xref))
