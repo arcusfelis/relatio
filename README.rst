@@ -24,6 +24,9 @@ Keys h, j, k, l are used for moving as in Vim:
 - ``k`` - down;
 - ``l`` - right.
 
+- ``n`` - select the next module or function node;
+- ``N`` - select the previous module or function node.
+
 Scaling:
 
 - ``+`` - zoom in;
