@@ -1,7 +1,7 @@
-Depmap
-======
+Relatio
+=======
 
-Dependency analyzer for Erlang.
+Web UI for Erlang Xref.
 
 **License**: MIT
 
