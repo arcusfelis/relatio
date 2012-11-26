@@ -1,0 +1,310 @@
+@font-face {
+  font-family: 'DejaVu Sans Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: local('DejaVu Sans Mono'), url(font/DejaVuSansMono.woff) format('woff');
+}
+
+body {
+  font-family: DejaVu Sans Mono, Arial;
+  font-size: 13pt;
+  overflow: hidden;
+}
+
+/* sigma.js context : */
+#container {
+  background: #000;
+  height: 100%;
+  overflow: hidden;
+}
+#graph-main {
+  width: 100%;
+  height: 100%;
+  z-index: 2000;
+}
+#graph-directions { 
+  z-index: 9000;
+  background: #000;
+  color: #FFF;
+  width: 300px; 
+  top: 0px; 
+  bottom: 0px;
+  position: absolute;
+  right: 0px;
+  overflow: auto;
+  display: none;
+}
+
+.directions-active #graph-directions { 
+  display: block;
+}
+
+
+#search-results {
+  width: 300px; 
+  position: absolute;
+  bottom: 0px; 
+  top: 50px; 
+  color: #FFF;
+  overflow: auto;
+}
+
+#search-pane { 
+  display: none;
+  background: #000;
+  width: 300px; 
+  top: 0px; 
+  bottom: 0px; 
+  position: absolute;
+  right: 0px;
+  display: none;
+}
+
+.searching-active #search-pane {
+  display: block;
+}
+
+.directions-active #search-pane,
+.directions-active #search_field {
+  display: none;
+}
+
+#graph-directions a, #graph-modules-link a, #search-results a { 
+    text-decoration: none;
+    color: inherit;
+}
+
+#graph-directions a.header-closed,
+#graph-modules-link a.header-closed,
+#search-results a.header-closed {
+  color: #C0C0C0;
+}
+#graph-directions a.header-opened, 
+#graph-modules-link a.header-opened,
+#search-results a.header-opened {
+  color: #FFF;
+} #graph-modules {
+  width: 500px; 
+  height: 340px; 
+  position: absolute;
+  z-index: -1;
+}
+#graph-modules-link { 
+  margin-left: 2px;
+  margin-top: 2px;
+  color: white;
+}
+#top-panel {
+  z-index: 9001;
+  position: absolute;
+}
+html, body
+{margin: 0; padding: 0; height: 100%;}
+.disable_mouse_selection {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+.overlay-node {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  margin-top: -5px;
+  z-index: -1;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
+}
+.active-modules .overlay-node {
+  z-index: 9050;
+}
+.active-hover-modules .overlay-node:hover {
+  z-index: 9500;
+}
+.active-hover-modules #graph-modules { 
+  z-index: 9200;
+}
+
+.selected_elem_info {
+    font-size: 14pt;
+    text-align: right;
+    padding: 6px;
+}
+.misc {
+    font-size: 80%;
+    /* For new line */
+    display: block;
+}
+#graph-directions ul {
+  margin: 0px;
+  padding: 0px;
+  margin-left: 14pt;
+}
+
+.active-block .header-closed {
+  display: none;
+}
+.header-closed {
+  display: inline;
+}
+
+.active-block .header-opened {
+  display: inline;
+}
+.header-opened {
+  display: none;
+}
+
+.active-block .content-block {
+  display: block;
+}
+.content-block {
+  display: none;
+}
+
+#search_field {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 8000;
+  background: #000;
+  color: #CCC;
+  border: 1px solid #CCC;
+}
+
+.searching-active #search_field {
+  z-index: 9500;
+}
+
+#search_field:focus {
+  border: 1px solid #FFF;
+}
+
+
+.delim { color: gray; }
+#edge-direction-selector a { color: white; display: none; }
+.target_color #target_color { display: inline; }
+.source_color #source_color { display: inline; }
+
+
+#info_popup {
+    display: inline-block;
+    border-radius: 3px;
+    padding: 5px;
+    background: #fff;
+    color: #000;
+    box-shadow: 0 0 4px #666;
+    position: absolute;
+    margin-top: 15px;
+    font-size: 12pt;
+    z-index: -10;
+    max-width: 300px;
+}
+.info_popup_active #info_popup {
+    z-index: 9999;
+}
+  
+
+
+/*
+ * CSS Styles that are needed by jScrollPane for it to operate correctly.
+ *
+ * Include this stylesheet in your site or copy and paste the styles below into your stylesheet - jScrollPane
+ * may not operate correctly without them.
+ */
+
+.jspContainer
+{
+    overflow: hidden;
+    position: relative;
+}
+
+.jspPane
+{
+    position: absolute;
+}
+
+.jspVerticalBar
+{
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 6px;
+    height: 100%;
+}
+
+.jspHorizontalBar
+{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+}
+
+.jspVerticalBar *,
+.jspHorizontalBar *
+{
+    margin: 0;
+    padding: 0;
+}
+
+.jspCap
+{
+    display: none;
+}
+
+.jspHorizontalBar .jspCap
+{
+    float: left;
+}
+
+.jspTrack
+{
+    background: #000;
+    position: relative;
+
+    /* Opacity */
+    zoom: 1;
+    filter: alpha(opacity=80);
+    opacity: 0.8;
+}
+
+.jspTrack:hover
+{
+    filter: alpha(opacity=90);
+    opacity: 0.9;
+}
+
+.jspDrag
+{
+    background: #FFF;
+    position: relative;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+}
+
+.jspHorizontalBar .jspTrack,
+.jspHorizontalBar .jspDrag
+{
+    float: left;
+    height: 100%;
+}
+
+.jspCorner
+{
+    background: #000;
+    float: left;
+    height: 100%;
+}
+
+/* Yuk! CSS Hack for IE6 3 pixel bug :( */
+* html .jspCorner
+{
+    margin: 0 -3px 0 0;
+}

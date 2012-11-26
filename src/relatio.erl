@@ -17,7 +17,9 @@ start() ->
 
 start(_Type, _Args) ->
     PrivDir = code:priv_dir(relatio),
-    JsDir = abs_path(filename:join([PrivDir, "js"])),
+    JsSrcDir = abs_path(filename:join([PrivDir, "js_src"])),
+    JsLibDir = abs_path(filename:join([PrivDir, "js_lib"])),
+    CssSrcDir = abs_path(filename:join([PrivDir, "css_src"])),
     HtmlDir = abs_path(filename:join([PrivDir, "html"])),
     FontDir = abs_path(filename:join([PrivDir, "font"])),
     BulletDir = abs_path(code:priv_dir(bullet)),
@@ -30,8 +32,17 @@ start(_Type, _Args) ->
 			{[<<"data">>, '...'], relatio_data_handler, []},
 			{[], relatio_default_handler, []},
 
-            {[<<"js">>, '...'], cowboy_http_static,
-                 [{directory, JsDir}|StaticFilesCfg]},
+            {[<<"js_lib">>, '...'], cowboy_http_static,
+                 [{directory, JsLibDir}|StaticFilesCfg]},
+
+            {[<<"js_src">>, '...'], cowboy_http_static,
+                 [{directory, JsSrcDir}|StaticFilesCfg]},
+
+            {[<<"js_src">>, '...'], cowboy_http_static,
+                 [{directory, JsSrcDir}|StaticFilesCfg]},
+
+            {[<<"css_src">>, '...'], cowboy_http_static,
+                 [{directory, CssSrcDir}|StaticFilesCfg]},
 
             {[<<"font">>, '...'], cowboy_http_static,
                  [{directory, FontDir}|StaticFilesCfg]},
