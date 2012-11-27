@@ -308,3 +308,44 @@ html, body
 {
     margin: 0 -3px 0 0;
 }
+
+
+
+
+
+
+#top-remote-node
+{
+    position: absolute;
+    width: 20px;
+    height: 3px;
+    top: 0;
+    z-index: -1;
+}
+
+#bottom-remote-node
+{
+    position: absolute;
+    width: 20px;
+    height: 3px;
+    bottom: 0;
+    z-index: -1;
+}
+
+#left-remote-node
+{
+    position: absolute;
+    height: 20px;
+    width: 3px;
+    left: 0;
+    z-index: -1;
+}
+
+#right-remote-node
+{
+    position: absolute;
+    height: 20px;
+    width: 3px;
+    right: 0;
+    z-index: -1;
+}

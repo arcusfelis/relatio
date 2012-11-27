@@ -32,9 +32,6 @@ sigma.publicPrototype.borderNodes = function(onlyVisibleNodes) {
    return {"top": topNode, "bottom": bottomNode, "left": leftNode, "right": rightNode};
 }
 
-sigma.publicPrototype.unpickNode = function(nid) {
-  this.refresh();
-}
 
 sigma.publicPrototype.getNodeById = function(nid) {
     var nodes = this.getNodes([nid]);
@@ -113,18 +110,15 @@ sigma.publicPrototype.zoomToCoordinates = function(displayX, displayY, ratio) {
 
 
 sigma.publicPrototype.pickNode = function(nid) {
-  var s = this._core;
   switch (typeof(nid))
   {
     case "number":
     case "string":
-      this.iterNodes(function(node) {
-        s.plotter.drawHoverNode(node);
-      }, [nid]);
+      this.hoverNode(nid);
       break;
 
     case "object":
-      s.plotter.drawHoverNode(nid);
+      this.hoverNode(nid);
       break;
     
     default:
@@ -132,8 +126,58 @@ sigma.publicPrototype.pickNode = function(nid) {
   }
 }
 
+sigma.publicPrototype.unpickNode = function(nid) {
+  this.refresh();
+  // Hide remote nodes.
+  $("#top-remote-node, #bottom-remote-node," +
+    "#left-remote-node, #right-remote-node").css("z-index", -10);
+}
 
+sigma.publicPrototype.hoverNode = function(nid) {
+  var s = this._core;
+  var node = this.getNodeById(nid);
+  console.dir(node);
+  var canvasWidth = this.calculateCanvasWidth();
+  var canvasHeight = this.calculateCanvasHeight();
 
+  var top = Math.min(canvasHeight-20, Math.max(0, node.displayY));
+  var left = Math.min(canvasWidth-20, Math.max(0, node.displayX));
+
+  // stores a pointer on a div block, that represent this node.
+  var remote;
+  if (node.displayX < 0)
+  {
+      remote = $("#left-remote-node").css("top", top);
+  }
+  else if (node.displayX > canvasWidth)
+  {
+      remote = $("#right-remote-node").css("top", top)
+                                      .css("right", s.width - canvasWidth);
+  }
+  else if (node.displayY < 0)
+  {
+      remote = $("#top-remote-node").css("left", left);
+  }
+  else if (node.displayY > canvasHeight)
+  {
+      remote = $("#bottom-remote-node").css("left", left);
+  }
+  else s.plotter.drawHoverNode(node);
+
+  if (remote)
+      remote.css("z-index", 9999).css("background", node.color);
+}
+
+/**
+ * overwritten
+ */
+sigma.publicPrototype.calculateCanvasWidth = function() {
+    return this._core.width;
+}
+
+sigma.publicPrototype.calculateCanvasHeight = function() {
+    return this._core.height;
+}
 
 var relatio = {};
 
@@ -222,12 +266,14 @@ relatio.init = function() {
     var a = $("<a href='#'>").text(node.label);
     a.off(".show_node_label");
     a.on("click.show_node_label", function(e) {
+      si.unpickNode(nid);
       // Capture a Shift and Click event with jQuery
       if (e.shiftKey) {
         activateNode({'target': si, 'content': [nid]});
         return false;
       }
       si.zoomToNode(nid);
+//    si.pickNode(nid);
       return false;
     });
     a.on("mouseleave.show_node_label", function(){ 
@@ -505,6 +551,10 @@ relatio.init = function() {
     var width  = borders.right.x - borders.left.x;
     return {"height": height, "width": width};
   };
+
+  si.calculateCanvasWidth = function() {
+    return si._core.width - calculateRightPanelSize();
+  }
 
   var optimalScale = function() {
     var s = si._core;
