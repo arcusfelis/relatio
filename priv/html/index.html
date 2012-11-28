@@ -25,37 +25,44 @@ $(function() {
 
 
 </head>
-<body class="source_color">
+<body class="source-color active-tip-switch">
   <div id="container">
 
     <div id="top-panel">
-        <span id="graph-modules-link" class="disable_mouse_selection">
+        <span id="graph-modules-link" class="disable-mouse-selection">
           <a href="#" class="header-closed">Modules&hellip;</a>
           <a href="#" class="header-opened">Modules:</a>
         </span>
         <span class="delim">|</span>
-        <span id="edge-direction-selector" class="disable_mouse_selection">
-          <a href="#" id="source_color"
-              title="Set the edge color of the target node">S</a>
-          <a href="#" id="target_color"
-              title="Set the edge color of the source node">T</a>
+        <span id="edge-direction-selector" class="disable-mouse-selection">
+          <a href="#" id="source-color"
+              title="Set the edge color of the target node.">S</a>
+          <a href="#" id="target-color"
+              title="Set the edge color of the source node.">T</a>
+        </span>
+        <span class="delim">|</span>
+        <span id="node-tip-switch" class="disable-mouse-selection active-block">
+          <a href="#" class="header-closed"
+              title="Enable node tips.">Tips</a>
+          <a href="#" class="header-opened"
+              title="Disable node tips.">Tips</a>
         </span>
     </div>
 
-    <div id="info_popup"></div>
+    <div id="info-tip"></div>
 
     <div id="graph-modules"></div>
     <div id="graph-main"></div>
     <div id="graph-directions">
-        <div id="selected_function_elem_info" class="selected_elem_info">
-            Function <span class="function_name">FunctionName</span> 
+        <div id="selected-function-elem-info" class="selected-elem-info">
+            Function <span class="function-name">FunctionName</span> 
             <span class="misc">from 
-                <span class="module_name">ModuleName</span>
+                <span class="module-name">ModuleName</span>
             </span>
         </div>
 
-        <div id="selected_module_elem_info" class="selected_elem_info">
-            Module <span class="module_name">ModuleName</span>
+        <div id="selected-module-elem-info" class="selected-elem-info">
+            Module <span class="module-name">ModuleName</span>
         </div>
 
         <!--
@@ -65,48 +72,47 @@ $(function() {
         </div>
         -->
 
-        <div id="functions" class="active-block">
+        <div id="functions" class="sub-block active-block">
             <a href="#" class="header-closed">Functions...</a>
             <a href="#" class="header-opened">Functions:</a>
             <div id="functions-list" class="content-block"></div>
         </div>
 
-        <div id="directions-out" class="active-block">
+        <div id="directions-out" class="sub-block active-block">
             <a href="#" class="header-closed">Calls to...</a>
             <a href="#" class="header-opened">Calls to:</a>
             <div id="directions-list-out" class="content-block"></div>
         </div>
 
-        <div id="directions-in" class="active-block">
+        <div id="directions-in" class="sub-block active-block">
             <a href="#" class="header-closed">Called from...</a>
             <a href="#" class="header-opened">Called from:</a>
             <div id="directions-list-in" class="content-block"></div>
         </div>
     </div>
 
+    <input type="text" id="search-field" />
     <div id="search-pane">
         <div id="search-results">
-            <div id="modules" class="active-block">
+            <div id="modules" class="sub-block active-block">
                 <a href="#" class="header-closed">Modules...</a>
                 <a href="#" class="header-opened">Modules:</a>
                 <div id="modules-list" class="content-block"></div>
             </div>
 
-            <div id="functions" class="active-block">
+            <div id="functions" class="sub-block active-block">
                 <a href="#" class="header-closed">Functions...</a>
                 <a href="#" class="header-opened">Functions:</a>
-                <div id="functions-list" class="content-block" class="content-block"></div>
+                <div id="functions-list" class="content-block"></div>
             </div>
         </div>
     </div>
 
-    <input type="text" id="search_field" />
-
     <div id="overlay-nodes"></div>
-    <div id="top-remote-node"></div>
-    <div id="bottom-remote-node"></div>
-    <div id="left-remote-node"></div>
-    <div id="right-remote-node"></div>
+    <div id="top-border-node"></div>
+    <div id="bottom-border-node"></div>
+    <div id="left-border-node"></div>
+    <div id="right-border-node"></div>
   </div>
 </body>
 </html>

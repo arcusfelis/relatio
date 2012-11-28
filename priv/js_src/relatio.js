@@ -128,9 +128,9 @@ sigma.publicPrototype.pickNode = function(nid) {
 
 sigma.publicPrototype.unpickNode = function(nid) {
   this.refresh();
-  // Hide remote nodes.
-  $("#top-remote-node, #bottom-remote-node," +
-    "#left-remote-node, #right-remote-node").css("z-index", -10);
+  // Hide border nodes.
+  $("#top-border-node, #bottom-border-node," +
+    "#left-border-node, #right-border-node").css("z-index", -10);
 }
 
 sigma.publicPrototype.hoverNode = function(nid) {
@@ -144,28 +144,28 @@ sigma.publicPrototype.hoverNode = function(nid) {
   var left = Math.min(canvasWidth-20, Math.max(0, node.displayX));
 
   // stores a pointer on a div block, that represent this node.
-  var remote;
+  var border;
   if (node.displayX < 0)
   {
-      remote = $("#left-remote-node").css("top", top);
+      border = $("#left-border-node").css("top", top);
   }
   else if (node.displayX > canvasWidth)
   {
-      remote = $("#right-remote-node").css("top", top)
+      border = $("#right-border-node").css("top", top)
                                       .css("right", s.width - canvasWidth);
   }
   else if (node.displayY < 0)
   {
-      remote = $("#top-remote-node").css("left", left);
+      border = $("#top-border-node").css("left", left);
   }
   else if (node.displayY > canvasHeight)
   {
-      remote = $("#bottom-remote-node").css("left", left);
+      border = $("#bottom-border-node").css("left", left);
   }
   else s.plotter.drawHoverNode(node);
 
-  if (remote)
-      remote.css("z-index", 9999).css("background", node.color);
+  if (border)
+      border.css("z-index", 9999).css("background", node.color);
 }
 
 /**
@@ -185,6 +185,7 @@ relatio.init = function() {
   self = this;
   var keyCodes = {
       ESCAPE:   27,
+      TAB:      9,
       H:        72,
 
       J:        74,
@@ -349,7 +350,7 @@ relatio.init = function() {
     var node_id = ids[0];
     var node = si.getNodeById(node_id);
 
-    $(".selected_elem_info").hide();
+    $(".selected-elem-info").hide();
     var active_header_block;
     var focused_elem;
 
@@ -357,8 +358,8 @@ relatio.init = function() {
     switch (node.attr.node_type)
     {
       case "module":
-        var activeHeaderBlock = $("#selected_module_elem_info").show();
-        var m_elem = $(".module_name", active_header_block).empty();
+        var activeHeaderBlock = $("#selected-module-elem-info").show();
+        var m_elem = $(".module-name", active_header_block).empty();
         nodeToHtmlLink(si, node, m_elem);
         var focused_elem = $("a", m_elem);
 
@@ -370,9 +371,9 @@ relatio.init = function() {
       // MFA
       default:
         var parent_node = si.function2moduleNode(node);
-        $("#selected_function_elem_info").show();
-        var fn_elem = $(".function_name", active_header_block).empty();
-        var m_elem = $(".module_name", active_header_block).empty();
+        $("#selected-function-elem-info").show();
+        var fn_elem = $(".function-name", active_header_block).empty();
+        var m_elem = $(".module-name", active_header_block).empty();
         nodeToHtmlLink(si, node, fn_elem);
         nodeToHtmlLink(si, parent_node, m_elem);
         var focused_elem = $("a", fn_elem);
@@ -482,7 +483,7 @@ relatio.init = function() {
 
 
 
-  var popup = $("#info_popup");
+  var tip = $("#info-tip");
   var showPopup = function(e) {
       var nodeIds = e.content;
       if (!nodeIds.length)
@@ -490,17 +491,25 @@ relatio.init = function() {
       var currentNode = si.getNodeById(nodeIds[0]);
       if (!currentNode.attr.node_title)
           return;
-      popup.html(currentNode.attr.node_title);
-      popup.css({'left': currentNode.displayX, 
+      tip.html(currentNode.attr.node_title);
+      tip.css({'left': currentNode.displayX, 
                  'top': currentNode.displayY});
-      $("body").addClass("info_popup_active");
+      $("body").addClass("info-tip-active");
   };
   var hidePopup = function(e) {
-      $("body").removeClass("info_popup_active");
+      $("body").removeClass("info-tip-active");
   };
   si.bind('overnodes', showPopup);
   si.bind('outnodes', hidePopup);
   si._core.mousecaptor.bind('startdrag', hidePopup);
+
+  /*
+  var stopInterpolate = function(e) {
+      console.log("stopInterpolate");
+  }
+  si._core.mousecaptor.bind('stopinterpolate', stopInterpolate);
+  */
+  
 
  
 
@@ -514,7 +523,7 @@ relatio.init = function() {
     si.showAllNodes();
     si.draw(2, 1);
     $("body").removeClass("directions-active"); 
-    $(".searching-active #search_field").focus();
+    $(".searching-active #search-field").focus();
   }
 
   var closeSearchSidebar = function(save_socus) {
@@ -677,19 +686,19 @@ relatio.init = function() {
         break;
 
       case keyCodes.PLUS:
-        var delta = 0.1 * (repeatCount || 1);
+        var delta = 0.1 * m.ratio * (repeatCount || 1);
         si.zoomTo(s.width / 2, s.height / 2, m.ratio + delta);
         repeatCount = 0;
         break;
 
       case keyCodes.MINUS:
-        var delta = 0.1 * (repeatCount || 1);
+        var delta = 0.1 * m.ratio * (repeatCount || 1);
         si.zoomTo(s.width / 2, s.height / 2, m.ratio - delta);
         repeatCount = 0;
         break;
 
       case keyCodes.SLASH:
-        $("#search_field").focus();
+        $("#search-field").focus();
         // TODO: select old text.
         // Don't let this char be entrered in the search field.
         return false;
@@ -803,6 +812,10 @@ relatio.init = function() {
       $("body").toggleClass("active-modules");
   });
 
+  $("#node-tip-switch a").click(function(e) { 
+      $("body").toggleClass("active-tip-switch");
+  });
+
   $("#graph-main canvas").each(function() {
       this.addEventListener('dblclick', resetScale);
   });
@@ -885,7 +898,7 @@ relatio.init = function() {
     activateAutoResizeMonitor($("#search-results"));
   }; // end of tryToSearch
 
-  $("#search_field").keydown(function(e) {
+  $("#search-field").keydown(function(e) {
     e.stopPropagation();
     switch (e.keyCode)
     {
@@ -893,7 +906,7 @@ relatio.init = function() {
       closeSearchSidebar();
     }
   });
-  $("#search_field").keyup(tryToSearch);
+  $("#search-field").keyup(tryToSearch);
   $("#search-results, #graph-directions").jScrollPane({trackClickRepeatFreq: 20});
 
     
@@ -967,16 +980,16 @@ relatio.init = function() {
   }
 
   $("#edge-direction-selector a").click(function(e) {
-    if ($("body").hasClass("source_color"))
+    if ($("body").hasClass("source-color"))
     {
         // Set the edge color of the target.
-        $("body").removeClass("source_color");
-        $("body").addClass("target_color");
+        $("body").removeClass("source-color");
+        $("body").addClass("target-color");
         si.setTargetEdgeColor();
     } else {
         // Set the edge color of the source.
-        $("body").removeClass("target_color");
-        $("body").addClass("source_color");
+        $("body").removeClass("target-color");
+        $("body").addClass("source-color");
         si.setSourceEdgeColor();
     }
     si.draw(-1, 1, -1);

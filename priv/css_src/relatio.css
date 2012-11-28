@@ -11,17 +11,25 @@ body {
   overflow: hidden;
 }
 
+html, body {
+    margin: 0; 
+    padding: 0; 
+    height: 100%;
+}
+
 /* sigma.js context : */
 #container {
   background: #000;
   height: 100%;
   overflow: hidden;
 }
+
 #graph-main {
   width: 100%;
   height: 100%;
   z-index: 2000;
 }
+
 #graph-directions { 
   z-index: 9000;
   background: #000;
@@ -33,6 +41,11 @@ body {
   right: 0px;
   overflow: auto;
   display: none;
+}
+
+.sub-block { 
+    margin-top: 10px;
+    margin-bottom: 20px;
 }
 
 .directions-active #graph-directions { 
@@ -65,42 +78,42 @@ body {
 }
 
 .directions-active #search-pane,
-.directions-active #search_field {
+.directions-active #search-field {
   display: none;
 }
 
-#graph-directions a, #graph-modules-link a, #search-results a { 
+a { 
     text-decoration: none;
     color: inherit;
 }
 
-#graph-directions a.header-closed,
-#graph-modules-link a.header-closed,
-#search-results a.header-closed {
+.header-closed {
   color: #C0C0C0;
 }
-#graph-directions a.header-opened, 
-#graph-modules-link a.header-opened,
-#search-results a.header-opened {
+
+.header-opened {
   color: #FFF;
-} #graph-modules {
+}
+
+#graph-modules {
   width: 500px; 
   height: 340px; 
   position: absolute;
   z-index: -1;
 }
+
 #graph-modules-link { 
   margin-left: 2px;
   margin-top: 2px;
   color: white;
 }
+
 #top-panel {
   z-index: 9001;
   position: absolute;
 }
-html, body
-{margin: 0; padding: 0; height: 100%;}
-.disable_mouse_selection {
+
+.disable-mouse-selection {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -129,7 +142,7 @@ html, body
   z-index: 9200;
 }
 
-.selected_elem_info {
+.selected-elem-info {
     font-size: 14pt;
     text-align: right;
     padding: 6px;
@@ -139,7 +152,7 @@ html, body
     /* For new line */
     display: block;
 }
-#graph-directions ul {
+.sub-block ul {
   margin: 0px;
   padding: 0px;
   margin-left: 14pt;
@@ -166,7 +179,7 @@ html, body
   display: none;
 }
 
-#search_field {
+#search-field {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -176,22 +189,22 @@ html, body
   border: 1px solid #CCC;
 }
 
-.searching-active #search_field {
+.searching-active #search-field {
   z-index: 9500;
 }
 
-#search_field:focus {
+#search-field:focus {
   border: 1px solid #FFF;
 }
 
 
 .delim { color: gray; }
 #edge-direction-selector a { color: white; display: none; }
-.target_color #target_color { display: inline; }
-.source_color #source_color { display: inline; }
+.target-color #target-color { display: inline; }
+.source-color #source-color { display: inline; }
 
 
-#info_popup {
+#info-tip {
     display: inline-block;
     border-radius: 3px;
     padding: 5px;
@@ -204,7 +217,7 @@ html, body
     z-index: -10;
     max-width: 300px;
 }
-.info_popup_active #info_popup {
+.active-tip-switch.info-tip-active #info-tip {
     z-index: 9999;
 }
   
@@ -314,7 +327,9 @@ html, body
 
 
 
-#top-remote-node
+/* Border nodes */
+
+#top-border-node
 {
     position: absolute;
     width: 20px;
@@ -323,7 +338,7 @@ html, body
     z-index: -1;
 }
 
-#bottom-remote-node
+#bottom-border-node
 {
     position: absolute;
     width: 20px;
@@ -332,7 +347,7 @@ html, body
     z-index: -1;
 }
 
-#left-remote-node
+#left-border-node
 {
     position: absolute;
     height: 20px;
@@ -341,7 +356,7 @@ html, body
     z-index: -1;
 }
 
-#right-remote-node
+#right-border-node
 {
     position: absolute;
     height: 20px;
