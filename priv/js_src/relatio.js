@@ -246,7 +246,7 @@ relatio.init = function() {
     minNodeSize: 1,
     maxNodeSize: 5,
     minEdgeSize: 1,
-    maxEdgeSize: 1
+    maxEdgeSize: 2
   }).mouseProperties({
     maxRatio: 32,
     minRatio: 0.5
@@ -255,6 +255,10 @@ relatio.init = function() {
   // Parse a GEXF encoded file to fill the graph
   // (requires "sigma.parseGexf.js" to be included)
   si.parseGexf('data/v-e-m.gexf');
+  si.iterEdges(function(e) {
+    if (e.weight)
+      e.size = e.weight;
+  });
 
   si.draw(2, 0, 0);
 
@@ -814,6 +818,24 @@ relatio.init = function() {
 
   $("#node-tip-switch a").click(function(e) { 
       $("body").toggleClass("active-tip-switch");
+  });
+
+  $("#ff-edge-switch a").click(function(e) { 
+      var is_disabled = $(this).parent().hasClass("active-block");
+      si.iterEdges(function(e) {
+        if (!e.attr.edge_type) // ff
+          e.hidden = is_disabled;
+      });
+      si.draw(2, 1);
+  });
+
+  $("#mm-edge-switch a").click(function(e) { 
+      var is_disabled = $(this).parent().hasClass("active-block");
+      si.iterEdges(function(e) {
+        if (e.attr.edge_type == "mm")
+          e.hidden = is_disabled;
+      });
+      si.draw(2, 1);
   });
 
   $("#graph-main canvas").each(function() {
