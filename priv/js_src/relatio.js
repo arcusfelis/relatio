@@ -136,7 +136,7 @@ sigma.publicPrototype.unpickNode = function(nid) {
 sigma.publicPrototype.hoverNode = function(nid) {
   var s = this._core;
   var node = this.getNodeById(nid);
-  console.dir(node);
+
   var canvasWidth = this.calculateCanvasWidth();
   var canvasHeight = this.calculateCanvasHeight();
 
@@ -182,23 +182,44 @@ sigma.publicPrototype.calculateCanvasHeight = function() {
 var relatio = {};
 
 relatio.init = function() {
+
   self = this;
   var keyCodes = {
-      ESCAPE:   27,
-      TAB:      9,
+      ESCAPE:   27
+  };
+  var charCodes = {
       H:        72,
-
       J:        74,
       K:        75,
       L:        76,
+      M:        77,
       N:        78,
+
+      R:        82,
+      U:        85,
+
+      h:        104,
+      j:        106,
+      k:        107,
+      l:        108,
+      m:        109,
+      n:        110,
+
+      r:        114,
+      u:        117,
+
+
 
       ONE:      49,
       NINE:     57,
       ZERO:     48,
-      PLUS:     61,
-      MINUS:    109,
-      SLASH:    191
+      PLUS:     43,
+      EQUALS:   61,
+      MINUS:    45,
+      SLASH:    47,
+      TILDA:    126,
+      GRAVE:    96,
+      RIGHT_PARENTHESIS: 41
   };
   var MIN_IMPORTANT_SIZE = 9;
 
@@ -251,6 +272,9 @@ relatio.init = function() {
     maxRatio: 32,
     minRatio: 0.5
   });
+
+  si.addNode('zero', { 'x': 0, 'y': 0, 'hidden': true });
+  si.addNode('one',  { 'x': 1, 'y': 1, 'hidden': true });
 
   // Parse a GEXF encoded file to fill the graph
   // (requires "sigma.parseGexf.js" to be included)
@@ -513,9 +537,41 @@ relatio.init = function() {
   }
   si._core.mousecaptor.bind('stopinterpolate', stopInterpolate);
   */
-  
 
- 
+
+
+
+  var saveCurrentPosition = function() {
+      var n0 = si.getNodeById('zero');
+      var n1 = si.getNodeById('one');
+      var m = si._core.mousecaptor;
+      var s = si._core;
+      var ratio = m.ratio,
+          centerX = s.width / 2,
+          centerY = s.height / 2,
+
+      // How many pixels from x = 0 to x = 1.
+          pixelCountX = n1.displayX - n0.displayX,
+          pixelCountY = n1.displayY - n0.displayY;
+
+      var centerx = (centerX - n0.displayX) / pixelCountX;
+      var centery = (centerY - n0.displayY) / pixelCountY;
+
+      return {"x": centerx, "y": centery, "ratio": m.ratio};
+  }
+
+
+  var setPosition = function(pos) {
+    n0 = si.getNodeById('zero');
+    n1 = si.getNodeById('one');
+
+    var pixelCountX = n1.displayX - n0.displayX,
+        pixelCountY = n1.displayY - n0.displayY;
+
+    si.zoomToCoordinates(n0.displayX + pixelCountX * pos.x, 
+                         n0.displayY + pixelCountY * pos.y, 
+                         pos.ratio);
+  }
 
 
   var openDirectionSidebar = function() {
@@ -633,11 +689,19 @@ relatio.init = function() {
     closeSearchSidebar();
   });
 
+
   var repeatCount = 0;
-  $(document).keydown(function(e) {
+  var nextKeyHandler;
+  var marks = [];
+
+  $(document).keypress(function(e) {
     var m = si._core.mousecaptor;
     var s = si._core;
     var kc = e.keyCode;
+    var cc = e.charCode;
+    if (!!nextKeyHandler)
+      return nextKeyHandler(e);
+
     switch (kc) {
       case keyCodes.ESCAPE:
         if (isDirectionSidebarOpen())
@@ -645,43 +709,50 @@ relatio.init = function() {
         else
           resetScale();
         break;
+    }
 
-      case keyCodes.ZERO:
-        if (repeatCount == 0)
-          if (e.shiftKey) optimalScale(); else resetScale();
-        else
+    switch (cc) {
+      case charCodes.ZERO:
+        if (repeatCount == 0) {
+          resetScale();
+        } else
           repeatCount *= 10;
         break;
 
-      case keyCodes.H:
-        // right
-        var step = s.width / 150;
-        si.goTo(step * (repeatCount || 1) + m.stageX, m.stageY);
-        repeatCount = 0;
+      case charCodes.RIGHT_PARENTHESIS:
+        optimalScale(); 
         break;
 
-      case keyCodes.L:
-        // left
+      case charCodes.H:
+        // right
         var step = s.width / 150;
         si.goTo(-step * (repeatCount || 1) + m.stageX, m.stageY);
         repeatCount = 0;
         break;
 
-      case keyCodes.K:
+      case charCodes.L:
+        // left
+        var step = s.width / 150;
+        si.goTo(step * (repeatCount || 1) + m.stageX, m.stageY);
+        repeatCount = 0;
+        break;
+
+      case charCodes.K:
         // up
         var step = s.height / 100;
         si.goTo(m.stageX, -step * (repeatCount || 1) + m.stageY);
         repeatCount = 0;
         break;
 
-      case keyCodes.J:
+      case charCodes.J:
         // down
         var step = s.height / 100;
         si.goTo(m.stageX, step * (repeatCount || 1) + m.stageY);
         repeatCount = 0;
         break;
 
-      case keyCodes.N:
+      case charCodes.N:
+      case charCodes.n:
         // next
         var offset = (e.shiftKey ? -1 : 1) * (repeatCount || 1);
         var next_node_id = nextNode(offset, current_node_id, current_node_ids);
@@ -689,19 +760,45 @@ relatio.init = function() {
         repeatCount = 0;
         break;
 
-      case keyCodes.PLUS:
+      case charCodes.m:
+        // put a mark
+        repeatCount = 0;
+        nextKeyHandler = function(e) {
+          nextKeyHandler = undefined;
+
+          marks[e.charCode] = saveCurrentPosition();
+        }
+        break;
+
+      case charCodes.GRAVE:
+        // go to the mark
+        repeatCount = 0;
+        nextKeyHandler = function(e) {
+          nextKeyHandler = undefined;
+
+          var pos = marks[e.charCode];
+          if (pos) setPosition(pos);
+          else noty({text: "A mark is not available for this key.",
+                     type: "warning",
+                     layout: "bottomCenter",
+                     timeout: 3000});
+        }
+        break;
+
+      case charCodes.PLUS:
+      case charCodes.EQUALS:
         var delta = 0.1 * m.ratio * (repeatCount || 1);
         si.zoomTo(s.width / 2, s.height / 2, m.ratio + delta);
         repeatCount = 0;
         break;
 
-      case keyCodes.MINUS:
+      case charCodes.MINUS:
         var delta = 0.1 * m.ratio * (repeatCount || 1);
         si.zoomTo(s.width / 2, s.height / 2, m.ratio - delta);
         repeatCount = 0;
         break;
 
-      case keyCodes.SLASH:
+      case charCodes.SLASH:
         $("#search-field").focus();
         // TODO: select old text.
         // Don't let this char be entrered in the search field.
@@ -710,10 +807,10 @@ relatio.init = function() {
 
       default:
 
-        if (kc >= keyCodes.ONE && kc <= keyCodes.NINE)
-            repeatCount = repeatCount * 10 + kc - keyCodes.ZERO;
+        if (cc >= charCodes.ONE && cc <= charCodes.NINE)
+            repeatCount = repeatCount * 10 + cc - charCodes.ZERO;
             
-//      console.log("Key pressed: " + e.keyCode);
+//      console.log("Key pressed: " + e.keyCode, " Char entered: " + e.charCode);
     }
   });
 
