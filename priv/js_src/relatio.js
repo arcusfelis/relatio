@@ -179,6 +179,114 @@ sigma.publicPrototype.calculateCanvasHeight = function() {
     return this._core.height;
 }
 
+var Ring = function(size)
+{
+    var a = new Array(size),
+        oldestN = 0,
+        newestN = 0,
+        currentN = -1;
+
+    this.reset = function() {
+        oldestN = 0;
+        newestN = 0;
+        nextN = -1;
+    }
+
+    /**
+     * Get Nth element.
+     */
+    var pos = function(N) { 
+        return (N + size) % size; 
+    }
+
+    this.next = function() {
+        return a[pos(currentN+1)];
+    }
+
+    this.current = function() {
+        return a[pos(currentN)];
+    }
+
+    var resetCurrent = function() {
+        a[pos(currentN)] = undefined;
+    }
+
+    var show = function() {
+        console.log("oldestN = ", oldestN, ", currentN = ", currentN, ", newestN = ", newestN);
+    }
+
+    /** 
+     * Add an element at the end.
+     */
+    this.add = function(e) {
+      console.log("add " + e);
+      // Move the pointer on the next cell.
+      currentN++;
+
+      // Save value in the circular buffer.
+      a[pos(currentN)] = e;
+
+      newestN = currentN;
+
+      if (size < currentN && currentN == newestN)
+      {
+          // The value in the old cell will be rewritten by `e'.
+          oldestN++;
+      }
+
+//    console.log(oldestN);
+
+//    console.dir(a);
+    }
+
+    /**
+     * Add or replace
+     */
+    this.check = function(e) {
+      // If e is a next element, than save history.
+      console.log("check " + e + " " + this.next());
+      show();
+
+      if ((newestN != currentN) && (e == this.next()))
+        currentN++;
+      else
+        this.add(e);
+
+      console.dir(a);
+    }
+
+    this.goBackward = function() {
+      console.log("goBackward");
+      show();
+
+      if (currentN < oldestN)
+          // We are out of the ring.
+          return;
+
+      currentN--;
+
+      if (currentN < oldestN)
+      {
+          // The backward history is empty.
+          // Set on -1 position.
+          resetCurrent();
+          return;
+      }
+
+
+      return this.current();
+    }
+
+    this.goForward = function() {
+      if (currentN == newestN)
+          // The forward history is empty.
+          return undefined;
+
+      currentN++;
+      return this.current();
+    }
+}
+
 var relatio = {};
 
 relatio.init = function() {
@@ -225,6 +333,8 @@ relatio.init = function() {
 
 
   var current_node_id, current_node_ids;
+
+  var active_node_history = new Ring(10);
 
   function centerPoint(coordinates)
   {
@@ -292,7 +402,7 @@ relatio.init = function() {
   function nodeToHtmlLink(si, node, elem)
   {
     var nid = node.id;
-    var a = $("<a href='#'>").text(node.label);
+    var a = $("<a href='#'>").addClass("node-" + nid).text(node.label);
     a.off(".show_node_label");
     a.on("click.show_node_label", function(e) {
       si.unpickNode(nid);
@@ -378,6 +488,8 @@ relatio.init = function() {
     var node_id = ids[0];
     var node = si.getNodeById(node_id);
 
+    active_node_history.check(node_id);
+
     $(".selected-elem-info").hide();
     var active_header_block;
     var focused_elem;
@@ -389,7 +501,7 @@ relatio.init = function() {
         var activeHeaderBlock = $("#selected-module-elem-info").show();
         var m_elem = $(".module-name", active_header_block).empty();
         nodeToHtmlLink(si, node, m_elem);
-        var focused_elem = $("a", m_elem);
+        focused_elem = $("a", m_elem);
 
         // Change a current set of nodes
         current_node_id = node.id;
@@ -404,7 +516,7 @@ relatio.init = function() {
         var m_elem = $(".module-name", active_header_block).empty();
         nodeToHtmlLink(si, node, fn_elem);
         nodeToHtmlLink(si, parent_node, m_elem);
-        var focused_elem = $("a", fn_elem);
+        focused_elem = $("a", fn_elem);
 
         // Change a current set of nodes
         current_node_id = node.id;
@@ -579,11 +691,13 @@ relatio.init = function() {
     activateAutoResizeMonitor($("#graph-directions"));
   };
 
-  var closeDirectionSidebar = function() {
+  var closeDirectionSidebar = function(saveHistory) {
     si.showAllNodes();
     si.draw(2, 1);
     $("body").removeClass("directions-active"); 
     $(".searching-active #search-field").focus();
+    if (!saveHistory)
+        active_node_history.reset();
   }
 
   var closeSearchSidebar = function(save_socus) {
@@ -803,6 +917,44 @@ relatio.init = function() {
         // TODO: select old text.
         // Don't let this char be entrered in the search field.
         return false;
+        break;
+
+      // undo
+      case charCodes.u:
+        // Tho steps back, one forward.
+        var currentNodeId = active_node_history.current();
+        var prevNodeId = active_node_history.goBackward();
+
+        console.log(currentNodeId + " " + prevNodeId);
+
+        if (!currentNodeId)
+            break;
+
+
+        if (!prevNodeId) {
+            // It is already the oldest node on the direction pane.
+            // Close this pane with savind the history of movements.
+            // Activate search panel.
+            closeDirectionSidebar(true);
+            // Focus the node.
+            $(".node-" + currentNodeId).focus();
+        } else {
+            active_node_history.goBackward();
+            console.log("cur: " + active_node_history.current());
+            // Activate previous node
+            activateNode({'target': si, 'content': [prevNodeId]});
+            $(".node-" + currentNodeId).focus();
+        }
+        break;
+
+      // redo
+      case charCodes.R:
+        // If the current node is already latest, then nextNodeId is undefined.
+        var nextNodeId = active_node_history.next();
+        console.log("nextNodeId = " + nextNodeId);
+        if (!!nextNodeId) {
+            activateNode({'target': si, 'content': [nextNodeId]});
+        }
         break;
 
       default:
