@@ -374,13 +374,6 @@ relatio.init = function() {
   };
   var MIN_IMPORTANT_SIZE = 9;
 
-  // Set a class for the focused (using a tab key) element.
-  var current_focused = $("body");
-  $("body").on("focus", "*", function (e) {
-      current_focused.removeClass("focused-elem");
-      current_focused = $(e.target).addClass("focused-elem");
-  });
-
 
   var current_node_id, current_node_ids, showPopup;
 
@@ -955,7 +948,11 @@ relatio.init = function() {
         //
         // Firefox handles pressing the ENTER key and calls `click`,
         // while Chromium does not call it.
-        current_focused.click();
+        //
+        // Emulate Shift+Click
+        var ee = $.Event("click");
+        ee.shiftKey = e.shiftKey;
+        $(":focus").trigger(ee);
         return false;
         break;
     }

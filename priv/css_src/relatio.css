@@ -393,7 +393,7 @@ a {
     list-style-type: disc;
 }
 
-a.focused-elem {
+a:focus {
     outline-style: none;
     background: DarkSlateGray;
 }
