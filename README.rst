@@ -45,3 +45,8 @@ Widgets:
 - ``Esc`` - close sidebars (or just click on them);
 - ``/`` - focus on the search field.
 
+
+Windows:
+
+- ``ctrl+w`` in vim, *but* ``w`` here. This key combination is reserved by few browsers.
+

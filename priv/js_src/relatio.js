@@ -679,7 +679,6 @@ relatio.init = function() {
   si.bind('downnodes', activateNode);
 
 
-
   var tip = $("#info-tip");
   showPopup = function(e) {
       var nodeIds = e.content;
@@ -921,12 +920,13 @@ relatio.init = function() {
     closeSearchSidebar();
   });
 
+  /////////////////////// Key Handlers ///////////////////////////////
 
   var repeatCount = 0;
   var nextKeyHandler;
   var marks = [];
 
-  $(document).keypress(function(e) {
+  var canvasKeyPressHandler = function(e) {
     var m = si._core.mousecaptor;
     var s = si._core;
     var kc = e.keyCode;
@@ -936,61 +936,44 @@ relatio.init = function() {
 
     switch (kc) {
       case keyCodes.ESCAPE:
-        if (isDirectionSidebarOpen())
-          closeDirectionSidebar();
-        else
-          resetScale();
-        break;
-
-      case keyCodes.ENTER:
-        // Thare are different behaviour for focused links without the `href`
-        // attribute.
-        //
-        // Firefox handles pressing the ENTER key and calls `click`,
-        // while Chromium does not call it.
-        //
-        // Emulate Shift+Click
-        var ee = $.Event("click");
-        ee.shiftKey = e.shiftKey;
-        $(":focus").trigger(ee);
-        return false;
+        resetScale();
         break;
     }
 
+    
     switch (cc) {
       case charCodes.ZERO:
         if (repeatCount == 0) {
           resetScale();
-        } else
-          repeatCount *= 10;
-        break;
+          break;
+        } else return "default";
 
       case charCodes.RIGHT_PARENTHESIS:
         optimalScale(); 
         break;
 
-      case charCodes.H:
+      case charCodes.h:
         // right
         var step = s.width / 150;
         si.goTo(-step * (repeatCount || 1) + m.stageX, m.stageY);
         repeatCount = 0;
         break;
 
-      case charCodes.L:
+      case charCodes.l:
         // left
         var step = s.width / 150;
         si.goTo(step * (repeatCount || 1) + m.stageX, m.stageY);
         repeatCount = 0;
         break;
 
-      case charCodes.K:
+      case charCodes.k:
         // up
         var step = s.height / 100;
         si.goTo(m.stageX, -step * (repeatCount || 1) + m.stageY);
         repeatCount = 0;
         break;
 
-      case charCodes.J:
+      case charCodes.j:
         // down
         var step = s.height / 100;
         si.goTo(m.stageX, step * (repeatCount || 1) + m.stageY);
@@ -1051,8 +1034,49 @@ relatio.init = function() {
         return false;
         break;
 
-      // undo
-      case charCodes.u:
+      default:
+        return "default";
+    }
+  } // End of the `canvasKeyPressHandler` function.
+
+
+  var panelKeyPressHandler = function(e) {
+    var m = si._core.mousecaptor;
+    var s = si._core;
+    var kc = e.keyCode;
+    var cc = e.charCode;
+    if (!!nextKeyHandler)
+      return nextKeyHandler(e);
+
+    switch (kc) {
+      case keyCodes.ESCAPE:
+        if (isDirectionSidebarOpen())
+          closeDirectionSidebar();
+        else
+          resetScale();
+        break;
+
+      case keyCodes.ENTER:
+        // Thare are different behaviour for focused links without the `href`
+        // attribute.
+        //
+        // Firefox handles pressing the ENTER key and calls `click`,
+        // while Chromium does not call it.
+        //
+        // Emulate Shift+Click event.
+        var ee = $.Event("click");
+        ee.shiftKey = e.shiftKey;
+        $(":focus").trigger(ee);
+        return false;
+        break;
+    }
+
+    
+    switch (cc) {
+
+      case charCodes.h:
+        // the right key, the previous pane
+        
         // Tho steps back, one forward.
         var currentNodeId = active_node_history.current();
         var prevNodeId = active_node_history.goBackward();
@@ -1077,10 +1101,13 @@ relatio.init = function() {
             activateNode({'target': si, 'content': [prevNodeId]});
             $(".node-" + currentNodeId).focus();
         }
+   //   repeatCount = 0;
         break;
 
-      // redo
-      case charCodes.R:
+
+      case charCodes.l:
+        // the left key, the next pane
+
         // If the current node is already latest, then nextNodeId is undefined.
         var nextNodeId = active_node_history.next();
         console.log("nextNodeId = " + nextNodeId);
@@ -1089,14 +1116,71 @@ relatio.init = function() {
         }
         break;
 
-      default:
+      case charCodes.k:
+        // up
+        break;
 
-        if (cc >= charCodes.ONE && cc <= charCodes.NINE)
-            repeatCount = repeatCount * 10 + cc - charCodes.ZERO;
-            
-//      console.log("Key pressed: " + e.keyCode, " Char entered: " + e.charCode);
+      case charCodes.j:
+        // down
+        break;
+
+
+      default:
+        return "default";
+    }
+  } // End of the `canvasKeyPressHandler` function.
+
+
+  var selectedKeyHandler = canvasKeyPressHandler;
+
+  $(document).keypress(function(e) {
+
+    var resultFromKeyHandler = selectedKeyHandler(e);
+
+    switch (resultFromKeyHandler)
+    {
+        case "default":
+          return defaultKeyHandler(e);
+          break;
+
+        // This key was handled.
+        default:
+          return resultFromKeyHandler;
     }
   });
+
+
+  var defaultKeyHandler = function(e)
+  {
+    var kc = e.keyCode,
+        cc = e.charCode;
+
+    // common handler
+    switch (kc) {
+      case keyCodes.ENTER:
+        // Thare are different behaviour for focused links without the `href`
+        // attribute.
+        //
+        // Firefox handles pressing the ENTER key and calls `click`,
+        // while Chromium does not call it.
+        //
+        // Emulate Shift+Click event.
+        var ee = $.Event("click");
+        ee.shiftKey = e.shiftKey;
+        $(":focus").trigger(ee);
+        return false;
+        break;
+    }
+
+
+    switch (cc) {
+      default:
+        if (cc >= charCodes.ZERO && cc <= charCodes.NINE)
+            repeatCount = repeatCount * 10 + cc - charCodes.ZERO;
+      console.log("Key pressed: " + e.keyCode, " Char entered: " + e.charCode);
+    }
+  };
+            
 
 
   // The other canvas for a list of modules
@@ -1366,6 +1450,7 @@ relatio.init = function() {
         case "module":
           module_ids.push(node.id);
       }
+     node.active = false;
   });
 
   // Set modules as current nodes
