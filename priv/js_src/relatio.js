@@ -129,43 +129,85 @@ sigma.publicPrototype.pickNode = function(nid) {
 sigma.publicPrototype.unpickNode = function(nid) {
   this.refresh();
   // Hide border nodes.
-  $("#top-border-node, #bottom-border-node," +
+  $("#border-node, #top-border-node, #bottom-border-node," +
     "#left-border-node, #right-border-node").css("z-index", -10);
 }
 
 sigma.publicPrototype.hoverNode = function(nid) {
-  var s = this._core;
-  var node = this.getNodeById(nid);
+  var s = this._core,
+      node = this.getNodeById(nid),
 
-  var canvasWidth = this.calculateCanvasWidth();
-  var canvasHeight = this.calculateCanvasHeight();
+      canvasWidth = this.calculateCanvasWidth(),
+      canvasHeight = this.calculateCanvasHeight(),
 
-  var top = Math.min(canvasHeight-20, Math.max(0, node.displayY));
-  var left = Math.min(canvasWidth-20, Math.max(0, node.displayX));
+      top = Math.min(canvasHeight-20, Math.max(0, node.displayY)),
+      left = Math.min(canvasWidth-20, Math.max(0, node.displayX)),
+      right = s.width - canvasWidth,
 
   // stores a pointer on a div block, that represent this node.
-  var border;
-  if (node.displayX < 0)
+      border,
+
+  // Is the node out?
+      isLeft = node.displayX < 0,
+      isRight = node.displayX > canvasWidth,
+      isTop = node.displayY < 0,
+      isBottom = node.displayY > canvasHeight,
+
+      bgColor = node.color;
+
+
+  // This code adds a small triangle in the corner of the canvas
+  if (isLeft && isTop)
+  {
+      var bColor = bgColor + " transparent transparent " + bgColor;
+      border = $("#border-node").css({"top": 0, "left": 0,
+                                      "border-color": bColor});
+      bgColor = "transparent";
+  }
+  else if (isLeft && isBottom)
+  {
+      var bColor = "transparent transparent " + bgColor + " " + bgColor;
+      border = $("#border-node").css({"top": top, "left": 0, 
+                                      "border-color": bColor});
+      bgColor = "transparent";
+  }
+  else if (isRight && isTop)
+  {
+      var bColor = bgColor + " " + bgColor + " transparent transparent";
+      border = $("#border-node").css({"top": 0, "left": left,
+                                      "border-color": bColor});
+      bgColor = "transparent";
+  }
+  else if (isRight && isBottom)
+  {
+      var bColor = "transparent " + bgColor + " " + bgColor + " transparent";
+      border = $("#border-node").css({"top": top, "left": left, 
+                                      "border-color": bColor});
+      bgColor = "transparent";
+  }
+  // This code adds a small rectangle on the border of the canvas
+  else if (isLeft)
   {
       border = $("#left-border-node").css("top", top);
   }
-  else if (node.displayX > canvasWidth)
+  else if (isRight)
   {
       border = $("#right-border-node").css("top", top)
-                                      .css("right", s.width - canvasWidth);
+                                      .css("right", right);
   }
-  else if (node.displayY < 0)
+  else if (isTop)
   {
       border = $("#top-border-node").css("left", left);
   }
-  else if (node.displayY > canvasHeight)
+  else if (isBottom)
   {
       border = $("#bottom-border-node").css("left", left);
   }
+  // This code draws the label on background
   else s.plotter.drawHoverNode(node);
 
   if (border)
-      border.css("z-index", 9999).css("background", node.color);
+      border.css("z-index", 9999).css("background", bgColor);
 }
 
 /**
@@ -293,7 +335,8 @@ relatio.init = function() {
 
   self = this;
   var keyCodes = {
-      ESCAPE:   27
+      ESCAPE:   27,
+      ENTER:    13
   };
   var charCodes = {
       H:        72,
@@ -331,8 +374,15 @@ relatio.init = function() {
   };
   var MIN_IMPORTANT_SIZE = 9;
 
+  // Set a class for the focused (using a tab key) element.
+  var current_focused = $("body");
+  $("body").on("focus", "*", function (e) {
+      current_focused.removeClass("focused-elem");
+      current_focused = $(e.target).addClass("focused-elem");
+  });
 
-  var current_node_id, current_node_ids;
+
+  var current_node_id, current_node_ids, showPopup;
 
   var active_node_history = new Ring(10);
 
@@ -401,11 +451,21 @@ relatio.init = function() {
   // node is a sigma node.
   function nodeToHtmlLink(si, node, elem)
   {
+
     var nid = node.id;
-    var a = $("<a href='#'>").addClass("node-" + nid).text(node.label);
+    var a = $("<a tabindex='0'>").addClass("node-" + nid).text(node.label);
+
+    // Add a class to element (not to "<a>")
+    if (node.attr.is_exported)
+        elem.addClass("is-exported");
+    else
+        elem.removeClass("is-exported");
+
     a.off(".show_node_label");
     a.on("click.show_node_label", function(e) {
       si.unpickNode(nid);
+      hidePopup({"content": [nid]});
+
       // Capture a Shift and Click event with jQuery
       if (e.shiftKey) {
         activateNode({'target': si, 'content': [nid]});
@@ -415,11 +475,15 @@ relatio.init = function() {
 //    si.pickNode(nid);
       return false;
     });
+    // Show hovered label fore the node.
+    // Show popup window with description.
     a.on("mouseleave.show_node_label", function(){ 
         si.unpickNode(nid);
+        hidePopup({"content": [nid]});
     });
     a.on("mouseenter.show_node_label", function(){ 
         si.pickNode(nid);
+        showPopup({"content": [nid]});
     });
     elem.append(a);
     return elem;
@@ -624,16 +688,77 @@ relatio.init = function() {
 
 
   var tip = $("#info-tip");
-  var showPopup = function(e) {
+  showPopup = function(e) {
       var nodeIds = e.content;
       if (!nodeIds.length)
           return;
-      var currentNode = si.getNodeById(nodeIds[0]);
-      if (!currentNode.attr.node_title)
+      var node = si.getNodeById(nodeIds[0]);
+      if (!node.attr.node_title)
           return;
-      tip.html(currentNode.attr.node_title);
-      tip.css({'left': currentNode.displayX, 
-                 'top': currentNode.displayY});
+      tip.html(node.attr.node_title);
+
+      var canvasWidth = si.calculateCanvasWidth(),
+          canvasHeight = si.calculateCanvasHeight(),
+          tipWidth = tip.outerWidth(),
+          tipHeight = tip.outerHeight();
+
+      // Calculate popup position.
+      // Set X and Y, if the selected node is not on the screen.
+      var props = {};
+
+      if (node.displayX < 0)
+      {
+          // left border
+          props.left = 10;
+          props.top = node.displayY - tipHeight / 2;
+          props.top = Math.min(Math.max(10, props.top),
+                               canvasHeight - tipHeight - 10); 
+      }
+      else if (node.displayX > canvasWidth)
+      {
+          // right border
+          props.left = canvasWidth - tipWidth - 10;
+          props.top = node.displayY - tipHeight / 2;
+          props.top = Math.min(Math.max(10, props.top),
+                               canvasHeight - tipHeight - 10); 
+      }
+      else if (node.displayY < 0)
+      {
+          // top border
+          props.top = 10;
+          props.left = node.displayX - tipWidth / 2;
+          props.left = Math.min(Math.max(10, props.left),
+                                canvasWidth - tipWidth - 10); 
+      }
+      else if (node.displayY > canvasHeight)
+      {
+          // bottom border
+          props.top = canvasHeight - tipHeight - 10;
+          props.left = node.displayX - tipWidth / 2;
+          props.left = Math.min(Math.max(10, props.left),
+                                canvasWidth - tipWidth - 10); 
+      }
+      else
+      {
+        // The node is on the screen
+        props.left = Math.min(node.displayX,
+                              canvasWidth - tipWidth - 15); // 15 is a margin.
+       
+        var centerY = si._core.height / 2;
+       
+        // 5 is an additional margin.
+        var popupY = Math.min(node.displayY,
+                              canvasHeight + 5);
+       
+        if (popupY < centerY)
+            // The node is on top-side of the screen.
+            props.top = popupY + 15;
+        else
+            props.top = popupY - tipHeight - 15;
+      }
+
+      tip.css(props);
+
       $("body").addClass("info-tip-active");
   };
   var hidePopup = function(e) {
@@ -822,6 +947,16 @@ relatio.init = function() {
           closeDirectionSidebar();
         else
           resetScale();
+        break;
+
+      case keyCodes.ENTER:
+        // Thare are different behaviour for focused links without the `href`
+        // attribute.
+        //
+        // Firefox handles pressing the ENTER key and calls `click`,
+        // while Chromium does not call it.
+        current_focused.click();
+        return false;
         break;
     }
 
@@ -1263,13 +1398,22 @@ relatio.init = function() {
         $("body").addClass("source-color");
         si.setSourceEdgeColor();
     }
+
+    var t = $(e.target),
+        p = t.parent().removeClass("active-block"); 
+    $("a:visible:first", p).focus();
+
+    // Ignore nodes and labels (-1). Draw edges.
     si.draw(-1, 1, -1);
   });
 
   /* FIXME: It is hack (a hot fix of a bug). 
-     It forces to draw hovered labels, when initial loading is done. */
+     It forces to draw hovered labels, when initial loading is done.
+     Otherwise, hovered labels don't work as expercted in Firefox.
+   */
   si._core.plotter.drawHoverNode(si._core.graph.nodes[0]);
 
   // Draw the graph :
+  // - directly redraw labels (2)
   si.draw(-1, 1, 2);
 }

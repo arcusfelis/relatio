@@ -32,35 +32,35 @@ $(function() {
 
     <div id="top-panel">
         <span id="graph-modules-link" class="disable-mouse-selection">
-          <a href="#" class="header-closed">Modules&hellip;</a>
-          <a href="#" class="header-opened">Modules:</a>
+          <a tabindex="0" class="header-closed">Modules&hellip;</a>
+          <a tabindex="0" class="header-opened">Modules:</a>
         </span>
         <span class="delim">|</span>
         <span id="edge-direction-selector" class="disable-mouse-selection">
-          <a href="#" id="source-color"
+          <a tabindex="0" id="source-color"
               title="Set the edge color of the target node.">S</a>
-          <a href="#" id="target-color"
+          <a tabindex="0" id="target-color"
               title="Set the edge color of the source node.">T</a>
         </span>
         <span class="delim">|</span>
         <span id="node-tip-switch" class="disable-mouse-selection active-block">
-          <a href="#" class="header-closed"
+          <a tabindex="0" class="header-closed"
               title="Enable node tips.">Tips</a>
-          <a href="#" class="header-opened"
+          <a tabindex="0" class="header-opened"
               title="Disable node tips.">Tips</a>
         </span>
         <span class="delim">|</span>
         <span id="mm-edge-switch" class="disable-mouse-selection active-block">
-          <a href="#" class="header-closed"
-              title="Show \"module-to-module\" edges.">MM</a>
-          <a href="#" class="header-opened"
-              title="Hide \"module-to-module\" edges.">MM</a>
+          <a tabindex="0" class="header-closed"
+              title="Show &quot;module-to-module&quot; edges.">MM</a>
+          <a tabindex="0" class="header-opened"
+              title="Hide &quot;module-to-module&quot; edges.">MM</a>
         </span>
         <span class="delim">|</span>
         <span id="ff-edge-switch" class="disable-mouse-selection active-block">
-          <a href="#" class="header-closed"
+          <a tabindex="0" class="header-closed"
               title="Show function call edges.">FF</a>
-          <a href="#" class="header-opened"
+          <a tabindex="0" class="header-opened"
               title="Hide function call edges.">FF</a>
         </span>
     </div>
@@ -89,20 +89,20 @@ $(function() {
         -->
 
         <div id="functions" class="sub-block active-block">
-            <a href="#" class="header-closed">Functions...</a>
-            <a href="#" class="header-opened">Functions:</a>
+            <a tabindex="0" class="header-closed">Functions...</a>
+            <a tabindex="0" class="header-opened">Functions:</a>
             <div id="functions-list" class="content-block"></div>
         </div>
 
         <div id="directions-out" class="sub-block active-block">
-            <a href="#" class="header-closed">Calls to...</a>
-            <a href="#" class="header-opened">Calls to:</a>
+            <a tabindex="0" class="header-closed">Calls to...</a>
+            <a tabindex="0" class="header-opened">Calls to:</a>
             <div id="directions-list-out" class="content-block"></div>
         </div>
 
         <div id="directions-in" class="sub-block active-block">
-            <a href="#" class="header-closed">Called from...</a>
-            <a href="#" class="header-opened">Called from:</a>
+            <a tabindex="0" class="header-closed">Called from...</a>
+            <a tabindex="0" class="header-opened">Called from:</a>
             <div id="directions-list-in" class="content-block"></div>
         </div>
     </div>
@@ -111,20 +111,21 @@ $(function() {
     <div id="search-pane">
         <div id="search-results">
             <div id="modules" class="sub-block active-block">
-                <a href="#" class="header-closed">Modules...</a>
-                <a href="#" class="header-opened">Modules:</a>
+                <a tabindex="0" class="header-closed">Modules...</a>
+                <a tabindex="0" class="header-opened">Modules:</a>
                 <div id="modules-list" class="content-block"></div>
             </div>
 
             <div id="functions" class="sub-block active-block">
-                <a href="#" class="header-closed">Functions...</a>
-                <a href="#" class="header-opened">Functions:</a>
+                <a tabindex="0" class="header-closed">Functions...</a>
+                <a tabindex="0" class="header-opened">Functions:</a>
                 <div id="functions-list" class="content-block"></div>
             </div>
         </div>
     </div>
 
     <div id="overlay-nodes"></div>
+    <div id="border-node"></div>
     <div id="top-border-node"></div>
     <div id="bottom-border-node"></div>
     <div id="left-border-node"></div>

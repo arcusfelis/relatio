@@ -8,3 +8,4 @@ deps/*
 *.dll
 .eunit
 doc/README.md
+log

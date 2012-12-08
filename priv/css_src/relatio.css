@@ -11,6 +11,12 @@ body {
   overflow: hidden;
 }
 
+input {
+  font-family: DejaVu Sans Mono, Arial;
+  font-size: 11pt;
+  width: 250px;
+}
+
 html, body {
     margin: 0; 
     padding: 0; 
@@ -210,9 +216,8 @@ a {
     padding: 5px;
     background: #fff;
     color: #000;
-    box-shadow: 0 0 4px #666;
     position: absolute;
-    margin-top: 15px;
+    margin: 0;
     font-size: 12pt;
     z-index: -10;
     max-width: 300px;
@@ -220,7 +225,6 @@ a {
 .active-tip-switch.info-tip-active #info-tip {
     z-index: 9999;
 }
-  
 
 
 /*
@@ -336,6 +340,7 @@ a {
     height: 3px;
     top: 0;
     z-index: -1;
+    margin-left: -10px;
 }
 
 #bottom-border-node
@@ -345,6 +350,7 @@ a {
     height: 3px;
     bottom: 0;
     z-index: -1;
+    margin-left: -10px;
 }
 
 #left-border-node
@@ -354,6 +360,7 @@ a {
     width: 3px;
     left: 0;
     z-index: -1;
+    margin-top: -10px;
 }
 
 #right-border-node
@@ -363,4 +370,30 @@ a {
     width: 3px;
     right: 0;
     z-index: -1;
+    margin-top: -10px;
+}
+
+#border-node
+{
+    position: absolute;
+    border-style: solid;
+    border-width: 10px;
+    width: 0;
+    height: 0;
+    z-index: -1;
+}
+
+#functions-list li
+{
+    list-style-type: circle;
+}
+
+#functions-list li.is-exported
+{
+    list-style-type: disc;
+}
+
+a.focused-elem {
+    outline-style: none;
+    background: DarkSlateGray;
 }
