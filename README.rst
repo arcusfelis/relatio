@@ -31,8 +31,8 @@ Scaling:
 
 - ``+`` - zoom in;
 - ``-`` - zoom out;
-- ``0`` - reset scaling;
-- ``)`` (or ``Shift+0``) - scale to the visible nodes.
+- ``0`` or ``Esc`` - reset scaling;
+- ``)`` or ``Shift+0`` - scale to the visible nodes.
 
 Typing a number before a motion repeats it that many times.
 
@@ -49,4 +49,18 @@ Widgets:
 Windows:
 
 - ``ctrl+w`` in vim, *but* ``w`` here. This key combination is reserved by few browsers.
+- ``w`` - switch beetween windows (``ctrl+w ctrl+w`` in vim)
+
+
+Search field:
+
+- ``Esc`` - stop searching, close the search side bar;
+- ``Enter`` - move to the founded element list.
+
+Sidebars:
+
+- ``h`` - previous sidebar;
+- ``j`` - up;
+- ``k`` - down;
+- ``l`` and ``Shift+Enter`` - open the focused element.
 

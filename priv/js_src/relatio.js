@@ -1,3 +1,4 @@
+
 sigma.publicPrototype.showAllNodes = function() {
    this.iterNodes(function(n) {
       n.hidden = false;
@@ -156,7 +157,10 @@ sigma.publicPrototype.hoverNode = function(nid) {
       bgColor = node.color;
 
 
-  // This code adds a small triangle in the corner of the canvas
+  // This code adds a small triangle in the corner of the canvas.
+  //
+  // Creating Triangles in CSS
+  // http://jonrohan.me/guide/css/creating-triangles-in-css/
   if (isLeft && isTop)
   {
       var bColor = bgColor + " transparent transparent " + bgColor;
@@ -231,7 +235,7 @@ var Ring = function(size)
     this.reset = function() {
         oldestN = 0;
         newestN = 0;
-        nextN = -1;
+        currentN = -1;
     }
 
     /**
@@ -246,11 +250,11 @@ var Ring = function(size)
     }
 
     this.current = function() {
-        return a[pos(currentN)];
-    }
+      if (currentN < oldestN)
+        // We are out of the ring.
+        return;
 
-    var resetCurrent = function() {
-        a[pos(currentN)] = undefined;
+      return a[pos(currentN)];
     }
 
     var show = function() {
@@ -297,36 +301,112 @@ var Ring = function(size)
       console.dir(a);
     }
 
-    this.goBackward = function() {
-      console.log("goBackward");
+    this.go = function(stepCount) {
+      console.log("GO TO " + stepCount);
       show();
-
-      if (currentN < oldestN)
-          // We are out of the ring.
-          return;
-
-      currentN--;
+      currentN += stepCount;
 
       if (currentN < oldestN)
       {
-          // The backward history is empty.
-          // Set on -1 position.
-          resetCurrent();
-          return;
+        // We are out of the ring.
+        // Put the cursor on a position before the first element.
+        currentN = oldestN - 1;
+        return;
       }
 
+      if (currentN > newestN)
+      {
+        // The forward history is empty.
+        // Put the curson on the last position.
+        currentN = newestN;
+      }
 
       return this.current();
     }
+}
 
-    this.goForward = function() {
-      if (currentN == newestN)
-          // The forward history is empty.
-          return undefined;
 
-      currentN++;
-      return this.current();
+var Window = function(hidden) {
+    this.hidden = hidden;
+}
+
+var WindowManager = function() {
+    var ws = [],
+        pos = 0;
+
+    // Add the new window
+    var register = function(win) {
+        ws.push(win);
     }
+
+    var activate = function(win) {
+        for (var i = 0; i < ws.length; i++)
+        {
+          if (ws[i] != win) continue;
+          win.hidden = false;
+          pos = i;
+          return;
+        }
+
+        throw "Win is not registered.";
+    }
+
+    var deactivate = function(win) {
+        win.hidden = true;
+        return current();
+    }
+
+    var allHidden = function() {
+      return ws.every(function(win) { return win.hidden; });
+    }
+
+    // Activate the next visible window
+    var next = function(cnt) {
+        if (allHidden()) return;
+
+        cnt = cnt || 1;
+        var step = cnt > 0 ? 1 : -1;
+
+        while(cnt)
+        {
+          pos += step;
+
+          // Check borders
+          if (pos == ws.length) pos = 0;
+          else
+          if (pos == -1) pos = ws.length - 1;
+
+          if (!ws[pos].hidden)
+            cnt -= step;
+        }
+
+        return ws[pos];
+    }
+
+    // If the current window is visible, then return it, otherwise return
+    // the next window and declate it as a current one.
+    var maybeCurrent = function() {
+      if (!ws.length)
+        return;
+
+      var cur = ws[pos];
+      if (cur.hidden)
+        return next();
+
+      return ws[pos];
+    }
+
+    var current = function() {
+        var win = maybeCurrent();
+        if (!win) throw "Bad window.";
+        return win;
+    }
+
+    this.register = register;
+    this.next = next;
+    this.current = current;
+    this.activate = activate;
+    this.deactivate = deactivate;
 }
 
 var relatio = {};
@@ -336,7 +416,8 @@ relatio.init = function() {
   self = this;
   var keyCodes = {
       ESCAPE:   27,
-      ENTER:    13
+      ENTER:    13,
+      TAB:      9
   };
   var charCodes = {
       H:        72,
@@ -359,6 +440,8 @@ relatio.init = function() {
       r:        114,
       u:        117,
 
+      w:        119,
+
 
 
       ONE:      49,
@@ -373,6 +456,16 @@ relatio.init = function() {
       RIGHT_PARENTHESIS: 41
   };
   var MIN_IMPORTANT_SIZE = 9;
+
+  var wm = new WindowManager();
+  var mainWindow = new Window(false); // visible
+  wm.register(mainWindow);
+
+  var searchingWindow = new Window(true);
+  wm.register(searchingWindow);
+
+  var dirWindow = new Window(true);
+  wm.register(dirWindow);
 
 
   var current_node_id, current_node_ids, showPopup;
@@ -446,7 +539,8 @@ relatio.init = function() {
   {
 
     var nid = node.id;
-    var a = $("<a tabindex='0'>").addClass("node-" + nid).text(node.label);
+    var a = $("<a tabindex='0'>").addClass("node-" + nid)
+                                 .addClass("node-link").text(node.label);
 
     // Add a class to element (not to "<a>")
     if (node.attr.is_exported)
@@ -675,6 +769,15 @@ relatio.init = function() {
   }; // end of activateNode
 
 
+  // Activate the focused on the pane node.
+  var activateFocusedNode = function() {
+    // Emulate `shift+CLICK`.
+    var ee = $.Event("click");
+    ee.shiftKey = true;
+    // Classes: .node-link or .header-closed or .header-opened
+    $("a:focus").trigger(ee);
+  }
+
   // The node was clicked.
   si.bind('downnodes', activateNode);
 
@@ -804,20 +907,36 @@ relatio.init = function() {
 
 
   var openDirectionSidebar = function() {
+    wm.activate(dirWindow);
     $("body").addClass("directions-active"); 
     activateAutoResizeMonitor($("#graph-directions"));
   };
 
   var closeDirectionSidebar = function(saveHistory) {
+    wm.deactivate(dirWindow);
     si.showAllNodes();
     si.draw(2, 1);
     $("body").removeClass("directions-active"); 
-    $(".searching-active #search-field").focus();
+    
+    // "reanimate" the searching field
+    var searchFieldSel = $(".searching-active #search-field").focus();
+    var isSearchActive = searchFieldSel.length;
+    if (isSearchActive)
+      wm.activate(searchingWindow);
+
     if (!saveHistory)
         active_node_history.reset();
   }
 
+
+  var openSearchSidebar = function() {
+    wm.activate(searchingWindow);
+    $("body").addClass("searching-active"); 
+    activateAutoResizeMonitor($("#search-results"));
+  };
+
   var closeSearchSidebar = function(save_socus) {
+    wm.deactivate(searchingWindow);
     if (!save_socus)
       $("#graph-modules-link a:visible").focus();
     $("body").removeClass("searching-active"); 
@@ -826,6 +945,10 @@ relatio.init = function() {
 
   var isDirectionSidebarOpen = function() {
     return $("body").hasClass("directions-active");
+  };
+
+  var isSearchingSidebarOpen = function() {
+    return $("body").hasClass("searching-active");
   };
 
   var resetScale = function(){ 
@@ -991,6 +1114,8 @@ relatio.init = function() {
 
       case charCodes.m:
         // put a mark
+        //
+        // The next char will be handled by the special key handler.
         repeatCount = 0;
         nextKeyHandler = function(e) {
           nextKeyHandler = undefined;
@@ -1027,13 +1152,6 @@ relatio.init = function() {
         repeatCount = 0;
         break;
 
-      case charCodes.SLASH:
-        $("#search-field").focus();
-        // TODO: select old text.
-        // Don't let this char be entrered in the search field.
-        return false;
-        break;
-
       default:
         return "default";
     }
@@ -1045,83 +1163,132 @@ relatio.init = function() {
     var s = si._core;
     var kc = e.keyCode;
     var cc = e.charCode;
-    if (!!nextKeyHandler)
-      return nextKeyHandler(e);
 
     switch (kc) {
       case keyCodes.ESCAPE:
         if (isDirectionSidebarOpen())
           closeDirectionSidebar();
-        else
-          resetScale();
+        else if (isSearchingSidebarOpen())
+          closeSearchSidebar();
         break;
 
+      
+
       case keyCodes.ENTER:
-        // Thare are different behaviour for focused links without the `href`
-        // attribute.
-        //
-        // Firefox handles pressing the ENTER key and calls `click`,
-        // while Chromium does not call it.
-        //
-        // Emulate Shift+Click event.
-        var ee = $.Event("click");
-        ee.shiftKey = e.shiftKey;
-        $(":focus").trigger(ee);
-        return false;
+        if ($(":focus").attr("id") == "search-field")
+        {
+          $("#search-pane a:visible:first").focus();
+          return false;
+        }
         break;
     }
 
     
     switch (cc) {
-
       case charCodes.h:
-        // the right key, the previous pane
-        
-        // Tho steps back, one forward.
-        var currentNodeId = active_node_history.current();
-        var prevNodeId = active_node_history.goBackward();
-
-        console.log(currentNodeId + " " + prevNodeId);
-
-        if (!currentNodeId)
+      // the left key, the prev pane
+      case charCodes.l:
+      // the right key, the next pane
+      
+        var goFocusedAndStop = false;
+        repeatCount = repeatCount || 1;
+        switch (cc) {
+          case charCodes.h:
+            // change a sign.
+            repeatCount *= -1;
             break;
 
+          // Check, that a cursor is on the link to the next node.
+          case charCodes.l:
+            var nextNID = active_node_history.next();
+            if (!nextNID) {
+              goFocusedAndStop = true;
+              break;
+            }
 
-        if (!prevNodeId) {
-            // It is already the oldest node on the direction pane.
-            // Close this pane with savind the history of movements.
-            // Activate search panel.
-            closeDirectionSidebar(true);
-            // Focus the node.
-            $(".node-" + currentNodeId).focus();
-        } else {
-            active_node_history.goBackward();
-            console.log("cur: " + active_node_history.current());
-            // Activate previous node
-            activateNode({'target': si, 'content': [prevNodeId]});
-            $(".node-" + currentNodeId).focus();
+            var isNextNodeLinkFocused = $(":focus").hasClass("node-" + nextNID);
+            if (!isNextNodeLinkFocused) {
+              goFocusedAndStop = true;
+              break;
+            }
         }
-   //   repeatCount = 0;
+
+        if (goFocusedAndStop) {
+          activateFocusedNode();
+          break;
+        }
+
+        var oldNID = active_node_history.current();
+        var curNID = active_node_history.go(repeatCount);
+        repeatCount = 0;
+        if (oldNID == curNID) break;
+
+        if (!curNID)
+        {
+            // cur is before the first element.
+
+            // Here is black magic.
+            var searchingActive = $("body").hasClass("searching-active");
+            var dirActive = $("body").hasClass("directions-active");
+
+            if (searchingActive)
+            {
+                // Activate searching.
+                if (dirActive)
+                    closeDirectionSidebar(true);
+
+                openSearchSidebar();
+
+                var nextNID = active_node_history.next();
+                $(".node-" + nextNID).focus();
+                break; // exit from `switch`.
+            } else {
+                // Show the first element in the list.
+                curNID = active_node_history.go(1);
+            }
+        }
+
+        var nextNID = active_node_history.next();
+
+        // The call of the function `check` from `activateNode` will move the
+        // cursor forward.
+        active_node_history.go(-1);
+
+        activateNode({'target': si, 'content': [curNID]});
+
+        if (nextNID)
+          $(".node-" + nextNID).focus();
+
         break;
 
-
-      case charCodes.l:
-        // the left key, the next pane
-
-        // If the current node is already latest, then nextNodeId is undefined.
-        var nextNodeId = active_node_history.next();
-        console.log("nextNodeId = " + nextNodeId);
-        if (!!nextNodeId) {
-            activateNode({'target': si, 'content': [nextNodeId]});
-        }
-        break;
-
+      // These two cases emulate TAB pressing, but only visible `a` tags can be
+      // passed.
       case charCodes.k:
         // up
-        break;
+        repeatCount = repeatCount || 1;
+        repeatCount *= -1;
 
       case charCodes.j:
         // down
+        repeatCount = repeatCount || 1;
+
+        var cur = $(":focus"),
+            set = $(".pane a:visible"),
+            pos = 0,
+            len = set.length;
+
+        for (var i = 0; i < len; i++)
+          if (set[i] == cur[0]) {
+            pos = i;
+            break;
+          }
+
+        pos += repeatCount;
+        pos = Math.max(0, pos);
+        pos = Math.min(pos, len - 1);
+
+        $(set[pos]).focus();
+        repeatCount = 0;
         break;
 
 
@@ -1130,12 +1297,17 @@ relatio.init = function() {
     }
   } // End of the `canvasKeyPressHandler` function.
 
+  searchingWindow.keyHandler = panelKeyPressHandler;
+  dirWindow.keyHandler = panelKeyPressHandler;
+  mainWindow.keyHandler = canvasKeyPressHandler;
 
-  var selectedKeyHandler = canvasKeyPressHandler;
+
 
   $(document).keypress(function(e) {
 
-    var resultFromKeyHandler = selectedKeyHandler(e);
+    var win = wm.current();
+
+    var resultFromKeyHandler = win.keyHandler(e);
 
     switch (resultFromKeyHandler)
     {
@@ -1158,7 +1330,7 @@ relatio.init = function() {
     // common handler
     switch (kc) {
       case keyCodes.ENTER:
-        // Thare are different behaviour for focused links without the `href`
+        // There are different behaviour for focused links without the `href`
         // attribute.
         //
         // Firefox handles pressing the ENTER key and calls `click`,
@@ -1174,6 +1346,18 @@ relatio.init = function() {
 
 
     switch (cc) {
+      case charCodes.w:
+        wm.next(repeatCount);
+        repeatCount = 0;
+        break;
+
+      case charCodes.SLASH:
+        $("#search-field").select().focus();
+        // TODO: select old text.
+        // Don't let this char be entrered in the search field.
+        return false;
+        break;
+
       default:
         if (cc >= charCodes.ZERO && cc <= charCodes.NINE)
             repeatCount = repeatCount * 10 + cc - charCodes.ZERO;
@@ -1380,9 +1564,8 @@ relatio.init = function() {
         $("#functions", sidebar).hide();
     }
 
-    $("body").addClass("searching-active"); 
+    openSearchSidebar();
 
-    activateAutoResizeMonitor($("#search-results"));
   }; // end of tryToSearch
 
   $("#search-field").keydown(function(e) {
