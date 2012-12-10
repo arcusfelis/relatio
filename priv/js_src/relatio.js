@@ -1,7 +1,8 @@
 
 sigma.publicPrototype.showAllNodes = function() {
    this.iterNodes(function(n) {
-      n.hidden = false;
+      if (!n.attr.alwaysHidden)
+          n.hidden = false;
    });
 }
 
@@ -328,6 +329,9 @@ var Ring = function(size)
 
 var Window = function(hidden) {
     this.hidden = hidden;
+    this.keyHandler = function(e) {};
+    this.activationHandler = function(e) {};
+    this.deactivationHandler = function(e) {};
 }
 
 var WindowManager = function() {
@@ -340,11 +344,14 @@ var WindowManager = function() {
     }
 
     var activate = function(win) {
+        var old_pos = pos;
         for (var i = 0; i < ws.length; i++)
         {
           if (ws[i] != win) continue;
           win.hidden = false;
           pos = i;
+          ws[old_pos].deactivationHandler();
+          ws[pos].activationHandler();
           return;
         }
 
@@ -366,6 +373,7 @@ var WindowManager = function() {
 
         cnt = cnt || 1;
         var step = cnt > 0 ? 1 : -1;
+        var old_pos = pos;
 
         while(cnt)
         {
@@ -378,6 +386,11 @@ var WindowManager = function() {
 
           if (!ws[pos].hidden)
             cnt -= step;
+        }
+
+        if (old_pos != pos) {
+            ws[old_pos].deactivationHandler();
+            ws[pos].activationHandler();
         }
 
         return ws[pos];
@@ -467,6 +480,30 @@ relatio.init = function() {
   var dirWindow = new Window(true);
   wm.register(dirWindow);
 
+  dirWindow.activationHandler = function() { 
+      $("body").addClass("directions-selected"); 
+  }
+
+  dirWindow.deactivationHandler = function() { 
+      $("body").removeClass("directions-selected"); 
+  }
+
+  mainWindow.activationHandler = function() { 
+      $("body").addClass("main-selected"); 
+  }
+
+  mainWindow.deactivationHandler = function() { 
+      $("body").removeClass("main-selected"); 
+  }
+
+  searchingWindow.activationHandler = function() { 
+      $("body").addClass("searching-selected"); 
+  }
+
+  searchingWindow.deactivationHandler = function() { 
+      $("body").removeClass("searching-selected"); 
+  }
+
 
   var current_node_id, current_node_ids, showPopup;
 
@@ -513,14 +550,14 @@ relatio.init = function() {
     minNodeSize: 1,
     maxNodeSize: 5,
     minEdgeSize: 1,
-    maxEdgeSize: 2
+    maxEdgeSize: 3
   }).mouseProperties({
     maxRatio: 32,
     minRatio: 0.5
   });
 
   si.addNode('zero', { 'x': 0, 'y': 0, 'hidden': true });
-  si.addNode('one',  { 'x': 1, 'y': 1, 'hidden': true });
+  si.addNode('one',  { 'x': 1, 'y': 1, 'hidden': true, attr: {'alwaysHidden': true} });
 
   // Parse a GEXF encoded file to fill the graph
   // (requires "sigma.parseGexf.js" to be included)
@@ -638,6 +675,9 @@ relatio.init = function() {
 
     var node_id = ids[0];
     var node = si.getNodeById(node_id);
+
+    if (node.id == current_node_id)
+        return;
 
     active_node_history.check(node_id);
 
@@ -1182,6 +1222,8 @@ relatio.init = function() {
         }
         break;
     }
+    if ($("input:focus").length)
+      return true;
 
     
     switch (cc) {
@@ -1221,6 +1263,9 @@ relatio.init = function() {
         var oldNID = active_node_history.current();
         var curNID = active_node_history.go(repeatCount);
         repeatCount = 0;
+
+        // Warning: currentN can be -1, than we will do "nothing", if searcing
+        // is not active.
         if (oldNID == curNID) break;
 
         if (!curNID)
@@ -1249,6 +1294,8 @@ relatio.init = function() {
         }
 
         var nextNID = active_node_history.next();
+
+        if (oldNID == curNID) break;
 
         // The call of the function `check` from `activateNode` will move the
         // cursor forward.

@@ -397,3 +397,24 @@ a:focus {
     outline-style: none;
     background: DarkSlateGray;
 }
+
+.main-selected #main-selected-mark {
+    position: absolute;
+    background: green;
+    z-index: 9999;
+    bottom: 10px;
+    left: 10px;
+    width: 5px;
+    height: 5px;
+}
+
+.directions-selected #directions-selected-mark,
+.searching-selected #searching-selected-mark {
+    position: absolute;
+    background: green;
+    z-index: 9999;
+    bottom: 10px;
+    right: 10px;
+    width: 5px;
+    height: 5px;
+}
