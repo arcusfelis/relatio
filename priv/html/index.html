@@ -31,7 +31,7 @@ $(function() {
   <div id="container">
 
     <div id="top-panel">
-        <span id="graph-modules-link" class="disable-mouse-selection">
+        <span id="graph-modules-link" class="disable-mouse-selection sub-block">
           <a tabindex="0" class="header-closed">Modules&hellip;</a>
           <a tabindex="0" class="header-opened">Modules:</a>
         </span>
@@ -43,21 +43,24 @@ $(function() {
               title="Set the edge color of the source node.">T</a>
         </span>
         <span class="delim">|</span>
-        <span id="node-tip-switch" class="disable-mouse-selection active-block">
+        <span id="node-tip-switch" 
+              class="disable-mouse-selection active-block sub-block">
           <a tabindex="0" class="header-closed"
               title="Enable node tips.">Tips</a>
           <a tabindex="0" class="header-opened"
               title="Disable node tips.">Tips</a>
         </span>
         <span class="delim">|</span>
-        <span id="mm-edge-switch" class="disable-mouse-selection active-block">
+        <span id="mm-edge-switch" 
+              class="disable-mouse-selection active-block sub-block">
           <a tabindex="0" class="header-closed"
               title="Show &quot;module-to-module&quot; edges.">MM</a>
           <a tabindex="0" class="header-opened"
               title="Hide &quot;module-to-module&quot; edges.">MM</a>
         </span>
         <span class="delim">|</span>
-        <span id="ff-edge-switch" class="disable-mouse-selection active-block">
+        <span id="ff-edge-switch" 
+              class="disable-mouse-selection active-block sub-block">
           <a tabindex="0" class="header-closed"
               title="Show function call edges.">FF</a>
           <a tabindex="0" class="header-opened"
@@ -89,19 +92,24 @@ $(function() {
         -->
 
         <div id="functions" class="sub-block active-block">
-            <a tabindex="0" class="header-closed">Functions...</a>
-            <a tabindex="0" class="header-opened">Functions:</a>
+            <div class="sub-block-header">
+                <a tabindex="0" class="header-closed">Functions&hellip;</a>
+                <a tabindex="0" class="header-opened">Functions:</a>
+                <span class="function-count header-count-info"
+                    title="Exported function count / Total function count">
+                </span>
+            </div>
             <div id="functions-list" class="content-block"></div>
         </div>
 
         <div id="directions-out" class="sub-block active-block">
-            <a tabindex="0" class="header-closed">Calls to...</a>
+            <a tabindex="0" class="header-closed">Calls to&hellip;</a>
             <a tabindex="0" class="header-opened">Calls to:</a>
             <div id="directions-list-out" class="content-block"></div>
         </div>
 
         <div id="directions-in" class="sub-block active-block">
-            <a tabindex="0" class="header-closed">Called from...</a>
+            <a tabindex="0" class="header-closed">Called from&hellip;</a>
             <a tabindex="0" class="header-opened">Called from:</a>
             <div id="directions-list-in" class="content-block"></div>
         </div>
@@ -111,13 +119,13 @@ $(function() {
     <div id="search-pane" class="pane">
         <div id="search-results">
             <div id="modules" class="sub-block active-block">
-                <a tabindex="0" class="header-closed">Modules...</a>
+                <a tabindex="0" class="header-closed">Modules&hellip;</a>
                 <a tabindex="0" class="header-opened">Modules:</a>
                 <div id="modules-list" class="content-block"></div>
             </div>
 
             <div id="functions" class="sub-block active-block">
-                <a tabindex="0" class="header-closed">Functions...</a>
+                <a tabindex="0" class="header-closed">Functions&hellip;</a>
                 <a tabindex="0" class="header-opened">Functions:</a>
                 <div id="functions-list" class="content-block"></div>
             </div>

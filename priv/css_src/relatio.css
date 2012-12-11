@@ -101,6 +101,25 @@ a {
   color: #FFF;
 }
 
+.sub-block-header {
+    text-align: justify;
+
+    /* IE special */  
+    width: 100%;  
+    -ms-text-justify: distribute-all-lines;
+        text-justify: distribute-all-lines;
+}
+
+.sub-block-header:after{
+    content: '';
+    display: inline-block;
+    width: 100%;
+    height: 0;
+    font-size:0;
+    line-height:0;
+}
+
+
 #graph-modules {
   width: 500px; 
   height: 340px; 

@@ -525,6 +525,16 @@ relatio.init = function() {
   }
 
 
+  function exportedFunctionsCount(function_nids)
+  {
+    var count = 0;
+    si.iterNodes(function(node) {
+        if (node.attr.is_exported) count++;
+    }, function_nids);
+    return count;
+  }
+
+
   var overlayNodeContainer = $("#overlay-nodes");
   // Add overlay node.
   function addOverlayNode(node)
@@ -556,8 +566,8 @@ relatio.init = function() {
     minRatio: 0.5
   });
 
-  si.addNode('zero', { 'x': 0, 'y': 0, 'hidden': true });
-  si.addNode('one',  { 'x': 1, 'y': 1, 'hidden': true, attr: {'alwaysHidden': true} });
+  si.addNode('zero', { 'x': 0, 'y': 0, 'hidden': true, 'alwaysHidden': true });
+  si.addNode('one',  { 'x': 1, 'y': 1, 'hidden': true, 'alwaysHidden': true });
 
   // Parse a GEXF encoded file to fill the graph
   // (requires "sigma.parseGexf.js" to be included)
@@ -796,6 +806,8 @@ relatio.init = function() {
     {
       var ul_in  = nodeIdsToHtml(si, function_node_ids);
       $("#functions-list").empty().append(ul_in);
+      $(".function-count").text(exportedFunctionsCount(function_node_ids)
+                       + "/" + function_node_ids.length);
       $("#functions").show();
     }
     else
@@ -966,6 +978,8 @@ relatio.init = function() {
 
     if (!saveHistory)
         active_node_history.reset();
+
+    current_node_id = undefined;
   }
 
 
@@ -1541,14 +1555,14 @@ relatio.init = function() {
 
   $(".header-closed").click(function(e) { 
       var t = $(e.target);
-      var p = t.parent().addClass("active-block"); 
+      var p = t.parents(".sub-block:first").addClass("active-block"); 
       $("a:visible:first", p).focus();
       return false;
   });
 
   $(".header-opened").click(function(e) { 
       var t = $(e.target);
-      var p = t.parent().removeClass("active-block"); 
+      var p = t.parents(".sub-block:first").removeClass("active-block"); 
       $("a:visible:first", p).focus();
       return false;
    });
