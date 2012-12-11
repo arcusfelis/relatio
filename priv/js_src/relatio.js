@@ -505,7 +505,7 @@ relatio.init = function() {
   }
 
 
-  var current_node_id, current_node_ids, showPopup;
+  var current_node_id, current_node_ids, current_hovered_node, showPopup;
 
   var active_node_history = new Ring(10);
 
@@ -612,10 +612,12 @@ relatio.init = function() {
     // Show hovered label fore the node.
     // Show popup window with description.
     a.on("mouseleave.show_node_label", function(){ 
+        current_hovered_node = undefined;
         si.unpickNode(nid);
         hidePopup({"content": [nid]});
     });
     a.on("mouseenter.show_node_label", function(){ 
+        current_hovered_node = nid;
         si.pickNode(nid);
         showPopup({"content": [nid]});
     });
@@ -686,7 +688,7 @@ relatio.init = function() {
     var node_id = ids[0];
     var node = si.getNodeById(node_id);
 
-    if (node.id == current_node_id)
+    if (node.id == current_node_id && isDirectionSidebarOpen())
         return;
 
     active_node_history.check(node_id);
@@ -776,6 +778,9 @@ relatio.init = function() {
                          .concat(functionIds2modulesIds(si, function_ids));
     }
 
+    // Pane root element
+    var pane = $("#graph-directions");
+
     si.hideAllNodes();
     si.showNodes(visible_node_ids);
     si.draw(2, 1);
@@ -783,36 +788,38 @@ relatio.init = function() {
     if (donor_node_ids.length > 0)
     {
       var ul_out = nodeIdsToHtml(si, donor_node_ids);
-      $("#directions-list-out").empty().append(ul_out);
-      $("#directions-out").show();
+      $("#directions-list-out", pane).empty().append(ul_out);
+      $(".direction-out-count", pane).text(donor_node_ids.length);
+      $("#directions-out", pane).show();
     }
     else
     {
-      $("#directions-out").hide();
+      $("#directions-out", pane).hide();
     }
 
     if (rcpnt_node_ids.length > 0)
     {
       var ul_in  = nodeIdsToHtml(si, rcpnt_node_ids);
-      $("#directions-list-in").empty().append(ul_in);
-      $("#directions-in").show();
+      $("#directions-list-in", pane).empty().append(ul_in);
+      $(".direction-in-count", pane).text(rcpnt_node_ids.length);
+      $("#directions-in", pane).show();
     }
     else
     {
-      $("#directions-in").hide();
+      $("#directions-in", pane).hide();
     }
 
     if (function_node_ids.length > 0)
     {
       var ul_in  = nodeIdsToHtml(si, function_node_ids);
-      $("#functions-list").empty().append(ul_in);
-      $(".function-count").text(exportedFunctionsCount(function_node_ids)
+      $("#function-list", pane).empty().append(ul_in);
+      $(".function-count", pane).text(exportedFunctionsCount(function_node_ids)
                        + "/" + function_node_ids.length);
-      $("#functions").show();
+      $("#functions", pane).show();
     }
     else
     {
-      $("#functions").hide();
+      $("#functions", pane).hide();
     }
     openDirectionSidebar();
 
@@ -915,12 +922,16 @@ relatio.init = function() {
   si.bind('outnodes', hidePopup);
   si._core.mousecaptor.bind('startdrag', hidePopup);
 
-  /*
+
+  /* Show info popup again, when the graphic stops moving. */
   var stopInterpolate = function(e) {
-      console.log("stopInterpolate");
+    if (!current_hovered_node)
+        return;
+
+    si.pickNode(current_hovered_node);
+    showPopup({"content": [current_hovered_node]});
   }
   si._core.mousecaptor.bind('stopinterpolate', stopInterpolate);
-  */
 
 
 
@@ -1088,7 +1099,7 @@ relatio.init = function() {
     si.zoomToCoordinates(vizCP.x + scaledRightPanelSize, vizCP.y, ratio);
   };
 
-  // Handler for closing the sidebar
+  // Handler for closing the pane
   $("#graph-directions").click(function(e) {
     closeDirectionSidebar();
   });
@@ -1567,9 +1578,15 @@ relatio.init = function() {
       return false;
    });
   
+
+
+  /**
+   * This function matches nodes and forms a list of them.
+   * It controls of visibility of the search panel.
+   */
   var tryToSearch = function(e) {
     var needle = e.target.value;
-    var sidebar = $("#search-results");
+    var pane = $("#search-results");
 
     // skip, if it is too short
     if (needle.length < 4) {
@@ -1606,28 +1623,32 @@ relatio.init = function() {
     if (matched_module_node_ids.length > 0)
     {
         var ul_mods = nodeIdsToHtml(si, matched_module_node_ids);
-        $("#modules-list", sidebar).empty().append(ul_mods);
-        $("#modules", sidebar).show();
+        $("#module-list", pane).empty().append(ul_mods);
+        $(".module-count", pane).text(matched_module_node_ids.length);
+        $("#modules", pane).show();
     }
     else
     {
-        $("#modules", sidebar).hide();
+        $("#modules", pane).hide();
     }
 
     if (matched_function_node_ids.length > 0)
     {
         var ul_funs = nodeIdsToHtml(si, matched_function_node_ids);
-        $("#functions-list", sidebar).empty().append(ul_funs);
-        $("#functions", sidebar).show();
+        $("#function-list", pane).empty().append(ul_funs);
+        $(".function-count", pane).text(matched_function_node_ids.length);
+        $("#functions", pane).show();
     }
     else
     {
-        $("#functions", sidebar).hide();
+        $("#functions", pane).hide();
     }
 
     openSearchSidebar();
 
   }; // end of tryToSearch
+
+
 
   $("#search-field").keydown(function(e) {
     e.stopPropagation();

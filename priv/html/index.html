@@ -99,18 +99,24 @@ $(function() {
                     title="Exported function count / Total function count">
                 </span>
             </div>
-            <div id="functions-list" class="content-block"></div>
+            <div id="function-list" class="content-block"></div>
         </div>
 
         <div id="directions-out" class="sub-block active-block">
-            <a tabindex="0" class="header-closed">Calls to&hellip;</a>
-            <a tabindex="0" class="header-opened">Calls to:</a>
+            <div class="sub-block-header">
+                <a tabindex="0" class="header-closed">Calls to&hellip;</a>
+                <a tabindex="0" class="header-opened">Calls to:</a>
+                <span class="direction-out-count header-count-info"></span>
+            </div>
             <div id="directions-list-out" class="content-block"></div>
         </div>
 
         <div id="directions-in" class="sub-block active-block">
-            <a tabindex="0" class="header-closed">Called from&hellip;</a>
-            <a tabindex="0" class="header-opened">Called from:</a>
+            <div class="sub-block-header">
+                <a tabindex="0" class="header-closed">Called from&hellip;</a>
+                <a tabindex="0" class="header-opened">Called from:</a>
+                <span class="direction-in-count header-count-info"></span>
+            </div>
             <div id="directions-list-in" class="content-block"></div>
         </div>
     </div>
@@ -119,15 +125,21 @@ $(function() {
     <div id="search-pane" class="pane">
         <div id="search-results">
             <div id="modules" class="sub-block active-block">
-                <a tabindex="0" class="header-closed">Modules&hellip;</a>
-                <a tabindex="0" class="header-opened">Modules:</a>
-                <div id="modules-list" class="content-block"></div>
+                <div class="sub-block-header">
+                    <a tabindex="0" class="header-closed">Modules&hellip;</a>
+                    <a tabindex="0" class="header-opened">Modules:</a>
+                    <span class="module-count header-count-info"></span>
+                </div>
+                <div id="module-list" class="content-block"></div>
             </div>
 
             <div id="functions" class="sub-block active-block">
-                <a tabindex="0" class="header-closed">Functions&hellip;</a>
-                <a tabindex="0" class="header-opened">Functions:</a>
-                <div id="functions-list" class="content-block"></div>
+                <div class="sub-block-header">
+                    <a tabindex="0" class="header-closed">Functions&hellip;</a>
+                    <a tabindex="0" class="header-opened">Functions:</a>
+                    <span class="function-count header-count-info"></span>
+                </div>
+                <div id="function-list" class="content-block"></div>
             </div>
         </div>
     </div>
