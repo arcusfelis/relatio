@@ -970,6 +970,9 @@ relatio.init = function() {
 
 
   var openDirectionSidebar = function() {
+    if (isDirectionSidebarOpen())
+        return;
+
     wm.activate(dirWindow);
     $("body").addClass("directions-active"); 
     activateAutoResizeMonitor($("#graph-directions"));
@@ -995,6 +998,9 @@ relatio.init = function() {
 
 
   var openSearchSidebar = function() {
+    if (isSearchingSidebarOpen())
+        return;
+
     wm.activate(searchingWindow);
     $("body").addClass("searching-active"); 
     activateAutoResizeMonitor($("#search-results"));

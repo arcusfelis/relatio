@@ -104,8 +104,8 @@ a {
 /* http://stackoverflow.com/questions/10272605/align-two-inline-blocks-left-and-right-on-same-line */
 .sub-block-header {
     text-align: justify;
-    line-height: 0;
-    margin-bottom: 5px;
+    margin-bottom: -1em;
+    line-height: normal;
 
     /* IE special */  
     width: 100%;  
@@ -122,6 +122,9 @@ a {
     line-height: 0;
 }
 
+.header-count-info {
+    margin-right: 10px;
+}
 
 #graph-modules {
   width: 500px; 
@@ -424,6 +427,10 @@ a {
 a:focus {
     outline-style: none;
     background: DarkSlateGray;
+}
+
+a:hover {
+    background: DarkSlateBlue;
 }
 
 .main-selected #main-selected-mark {
