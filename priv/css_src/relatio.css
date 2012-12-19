@@ -11,7 +11,7 @@ body {
   overflow: hidden;
 }
 
-input {
+input#search-field {
   font-family: DejaVu Sans Mono, Arial;
   font-size: 11pt;
   width: 250px;
@@ -162,15 +162,6 @@ a {
   z-index: -1;
   -moz-border-radius: 5px;
   border-radius: 5px;
-}
-.active-modules .overlay-node {
-  z-index: 9050;
-}
-.active-hover-modules .overlay-node:hover {
-  z-index: 9500;
-}
-.active-hover-modules #graph-modules { 
-  z-index: 9200;
 }
 
 .selected-elem-info {
@@ -422,6 +413,28 @@ a {
 #function-list li.is-exported
 {
     list-style-type: disc;
+}
+
+body.world li {
+    list-style-type: none;
+}
+
+.checkbox:before {
+    font-size: 16pt;
+    position: relative;
+    left: -6pt;
+    content: "\2610"; // &#9744;
+}
+.checkbox.selected:before {
+    content: "\2611"; // &#9744;
+}
+
+.checkbox:hover {
+    color: white;
+}
+
+body.shift-pressed .checkbox.will-be-selected {
+    color: white;
 }
 
 a:focus {

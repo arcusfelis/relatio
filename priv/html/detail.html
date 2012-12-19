@@ -12,12 +12,12 @@
 <script src="js_lib/jquery.jscrollpane.js" type="text/javascript"></script>
 <script src="js_lib/mwheelIntent.js" type="text/javascript"></script>
 <script src="js_src/relatio.js" type="text/javascript"></script>
-<script src="js_src/relatio.world.js" type="text/javascript"></script>
+<script src="js_src/relatio.detail.js" type="text/javascript"></script>
 <script type="text/javascript">
 <!--
 $(function() {
     $(document).ready(function() {
-        relatio.initWorld();
+        relatio.initDetail();
     });
 });
 -->
@@ -28,7 +28,7 @@ $(function() {
 
 
 </head>
-<body class="source-color active-tip-switch main-selected world">
+<body class="source-color active-tip-switch main-selected">
   <div id="container">
 
     <div id="top-panel">
@@ -48,20 +48,20 @@ $(function() {
               title="Disable node tips.">Tips</a>
         </span>
         <span class="delim">|</span>
-        <span id="aa-edge-switch" 
-              class="disable-mouse-selection active-block sub-block">
-          <a tabindex="0" class="header-closed"
-              title="Show application call edges.">AA</a>
-          <a tabindex="0" class="header-opened"
-              title="Hide application call edges.">AA</a>
-        </span>
-        <span class="delim">|</span>
         <span id="mm-edge-switch" 
               class="disable-mouse-selection active-block sub-block">
           <a tabindex="0" class="header-closed"
               title="Show &quot;module-to-module&quot; edges.">MM</a>
           <a tabindex="0" class="header-opened"
               title="Hide &quot;module-to-module&quot; edges.">MM</a>
+        </span>
+        <span class="delim">|</span>
+        <span id="ff-edge-switch" 
+              class="disable-mouse-selection active-block sub-block">
+          <a tabindex="0" class="header-closed"
+              title="Show function call edges.">FF</a>
+          <a tabindex="0" class="header-opened"
+              title="Hide function call edges.">FF</a>
         </span>
         <span class="delim">|</span>
         <span id="edge-direction-selector" class="disable-mouse-selection">
@@ -77,26 +77,33 @@ $(function() {
     <div id="graph-modules"></div>
     <div id="graph-main"></div>
     <div id="graph-directions" class="pane">
-        <div id="selected-module-elem-info" class="selected-elem-info">
-            Module <span class="module-name">ModuleName</span> 
+        <div id="selected-function-elem-info" class="selected-elem-info">
+            Function <span class="function-name">FunctionName</span> 
             <span class="misc">from 
-                <span class="application-name">ApplicationName</span>
+                <span class="module-name">ModuleName</span>
             </span>
         </div>
 
-        <div id="selected-application-elem-info" class="selected-elem-info">
-            Application <span class="application-name">ApplicationName</span>
+        <div id="selected-module-elem-info" class="selected-elem-info">
+            Module <span class="module-name">ModuleName</span>
         </div>
 
-        <div id="modules" class="sub-block active-block">
+        <!--
+        <div id="modules">
+            Modules:
+            <div id="modules-list"></div>
+        </div>
+        -->
+
+        <div id="functions" class="sub-block active-block">
             <div class="sub-block-header">
-                <a tabindex="0" class="header-closed">Modules&hellip;</a>
-                <a tabindex="0" class="header-opened">Modules:</a>
-                <span class="module-count header-count-info"
-                    title="Total module count">
+                <a tabindex="0" class="header-closed">Functions&hellip;</a>
+                <a tabindex="0" class="header-opened">Functions:</a>
+                <span class="function-count header-count-info"
+                    title="Exported function count / Total function count">
                 </span>
             </div>
-            <div id="module-list" class="content-block"></div>
+            <div id="function-list" class="content-block"></div>
         </div>
 
         <div id="directions-out" class="sub-block active-block">
@@ -121,15 +128,6 @@ $(function() {
     <input type="text" id="search-field" />
     <div id="search-pane" class="pane">
         <div id="search-results">
-            <div id="applications" class="sub-block active-block">
-                <div class="sub-block-header">
-                    <a tabindex="0" class="header-closed">Applications&hellip;</a>
-                    <a tabindex="0" class="header-opened">Applications:</a>
-                    <span class="application-count header-count-info"></span>
-                </div>
-                <div id="application-list" class="content-block"></div>
-            </div>
-
             <div id="modules" class="sub-block active-block">
                 <div class="sub-block-header">
                     <a tabindex="0" class="header-closed">Modules&hellip;</a>
@@ -137,6 +135,15 @@ $(function() {
                     <span class="module-count header-count-info"></span>
                 </div>
                 <div id="module-list" class="content-block"></div>
+            </div>
+
+            <div id="functions" class="sub-block active-block">
+                <div class="sub-block-header">
+                    <a tabindex="0" class="header-closed">Functions&hellip;</a>
+                    <a tabindex="0" class="header-opened">Functions:</a>
+                    <span class="function-count header-count-info"></span>
+                </div>
+                <div id="function-list" class="content-block"></div>
             </div>
         </div>
     </div>
