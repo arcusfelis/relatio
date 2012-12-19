@@ -159,6 +159,10 @@ relatio.initWorld = function() {
     var last2 = 0; // newer
 
     cbs.click(function(e) {
+      // This fucuses are neaded to make chromium happy!
+      // This browser tries to select the next.
+      $(cbs[0]).next().focus();
+      $(this).next().focus();
       var cur = cbs.index(this);
       if (last2 != cur) {
         last1 = last2;
