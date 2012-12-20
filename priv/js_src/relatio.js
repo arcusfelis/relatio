@@ -34,10 +34,16 @@ sigma.publicPrototype.borderNodes = function(onlyVisibleNodes) {
    return {"top": topNode, "bottom": bottomNode, "left": leftNode, "right": rightNode};
 }
 
-
 sigma.publicPrototype.getNodeById = function(nid) {
     var nodes = this.getNodes([nid]);
     return nodes[0];
+}
+
+sigma.publicPrototype.forAllNodes = function(fun, nids) {
+  var graph = this._core.graph;
+  return nids.every(function(nid) {
+    return fun(graph.nodesIndex[nid]);
+  });
 }
 
 sigma.publicPrototype.function2moduleNode = function(functionNode) {
@@ -348,6 +354,7 @@ sigma.publicPrototype.optimalScale = function(rightPanelSize) {
 
 
 sigma.publicPrototype.saveCurrentPosition = function() {
+    var si = this;
     var n0 = si.getNodeById('zero');
     var n1 = si.getNodeById('one');
     var m = si._core.mousecaptor;
@@ -368,6 +375,7 @@ sigma.publicPrototype.saveCurrentPosition = function() {
 
 
 sigma.publicPrototype.setPosition = function(pos) {
+  var si = this;
   n0 = si.getNodeById('zero');
   n1 = si.getNodeById('one');
 
@@ -658,6 +666,15 @@ var Tip = function(si)
   };
 };
 
+$.fn.dataArray = function(key) {
+    var arr = [];
+    for (var i = 0; i < this.length; i++) {
+      var val = $(this[i]).data(key);
+      if (val)
+        arr.push(val);
+    }
+    return arr;
+}
 
 /* JSP (scrollbars) EXTENSIONS FOR jQuery */
 $.fn.activateAutoResizeMonitor = function() {

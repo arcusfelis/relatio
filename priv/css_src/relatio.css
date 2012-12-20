@@ -180,22 +180,29 @@ a {
   margin-left: 14pt;
 }
 
+.cb-block ul {
+    /* Cancel margin for a content block with a header checkbox. */
+    margin-left: 0px;
+}
+
+.cb-block {
+    /* Specify margin for a whole block with a header checkbox. */
+    margin-left: 20px;
+}
+
 
 /* http://stackoverflow.com/questions/8573574/cancelling-text-align-justify-for-certain-parts-of-text */
 .active-block .header-closed {
   display: none;
 }
-.header-closed {
+.active-block .header-opened, 
+.header-closed, 
+.header-group {
   /* cancel justify */
   text-justify: none;
   display: inline-block;
 }
 
-.active-block .header-opened {
-  /* cancel justify */
-  text-justify: none;
-  display: inline-block;
-}
 .header-opened {
   display: none;
 }
@@ -422,7 +429,6 @@ body.world li {
 .checkbox:before {
     font-size: 16pt;
     position: relative;
-    left: -6pt;
     content: "\2610"; // &#9744;
 }
 .checkbox.selected:before {
@@ -430,6 +436,10 @@ body.world li {
 }
 
 .checkbox:hover {
+    color: white;
+}
+
+.hovered-group-cb .checkbox {
     color: white;
 }
 

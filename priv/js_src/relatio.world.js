@@ -1,3 +1,60 @@
+sigma.publicPrototype.applicationIds2modulesIds = function(app_ids) {
+  var mod_node_ids = [];
+  this.iterEdges(function(e) {
+      if (e.attr.edge_type == "am" && ~app_ids.indexOf(e.target)) {
+          mod_node_ids.push(e.source);
+      }
+  });
+  return mod_node_ids;
+}
+
+sigma.publicPrototype.moduleIds2moduleIds = function(ids) {
+  var module_node_ids = [];
+  this.iterEdges(function(e) {
+      if (!e.attr.edge_type) // call edge
+      {
+        if (~ids.indexOf(e.target))
+          module_node_ids.push(e.source);
+        else if (~ids.indexOf(e.source))
+          module_node_ids.push(e.target);
+      }
+  });
+  return module_node_ids;
+}
+
+sigma.publicPrototype.moduleIds2applicationIds = function(module_ids) {
+  var app_ids = [];
+  this.iterEdges(function(e) {
+      if (e.attr.edge_type == "am" && ~module_ids.indexOf(e.source)) 
+        app_ids.push(e.target);
+  });
+  return app_ids;
+}
+
+sigma.publicPrototype.selectNodes = function(nids, is_selected) {
+  var si = this;
+  si.iterNodes(function(n) {
+      n.attr.is_selected = is_selected;
+      if (n.attr.node_type == "app")
+       si.selectNodes(si.applicationIds2modulesIds([n.id]), is_selected);
+  }, nids);
+}
+
+sigma.publicPrototype.isSelectedNode = function(n) {
+  var si = this;
+  switch (n.attr.node_type) {
+    case "app":
+      var module_nids = si.applicationIds2modulesIds([n.id]);
+      return si.forAllNodes(function(n) { return n.attr.is_selected; }, 
+                            module_nids);
+      break;
+    default:
+      return n.attr.is_selected;
+  }
+}
+      
+
+
 relatio.initWorld = function() {
   var keyCodes = relatio.keyBoard.keyCodes,
       charCodes = relatio.keyBoard.charCodes;
@@ -130,7 +187,10 @@ relatio.initWorld = function() {
     if (add_cb)
     {
         var cb = $("<span class='checkbox'></span>");
-        elem.append(cb);
+        cb.data("node_id", nid);
+        if (si.isSelectedNode(node))
+            cb.addClass("selected");
+        elem.append(cb, " ");
     }
     elem.append(a);
     return elem;
@@ -158,29 +218,40 @@ relatio.initWorld = function() {
     var last1 = 0; // older
     var last2 = 0; // newer
 
-    cbs.click(function(e) {
+    cbs.mousedown(function(e) {
       // This fucuses are neaded to make chromium happy!
-      // This browser tries to select the next.
-      $(cbs[0]).next().focus();
+      // This browser tries to select text beetween the two elements.
       $(this).next().focus();
+    });
+
+    cbs.click(function(e) {
+      // Set a focus on a link.
+      var t = $(this);
+      t.next().focus();
       var cur = cbs.index(this);
       if (last2 != cur) {
         last1 = last2;
         last2 = cur;
       }
+      var is_selected = !t.hasClass("selected");
+      var node_ids;
       if (e.shiftKey) {
         var min = Math.min(last1, cur);
         var max = Math.max(last1, cur);
         var sel = cbs.slice(min, max+1);
-        if ($(this).hasClass("selected"))
-          sel.removeClass("selected");
-        else
+        if (is_selected)
           sel.addClass("selected");
+        else
+          sel.removeClass("selected");
+        node_ids = sel.dataArray("node_id");
       }
       else
       {
-        $(this).toggleClass("selected");
+        t.toggleClass("selected");
+        node_ids = [t.data("node_id")];
       }
+      // Change `is_selected` attribute for each node.
+      si.selectNodes(node_ids, is_selected);
       return false;
     });
 
@@ -201,38 +272,6 @@ relatio.initWorld = function() {
     return ul;
   }
 
-  var applicationIds2modulesIds = function(si, app_ids) {
-    var mod_node_ids = [];
-    si.iterEdges(function(e) {
-        if (e.attr.edge_type == "am" && ~app_ids.indexOf(e.target)) {
-            mod_node_ids.push(e.source);
-        }
-    });
-    return mod_node_ids;
-  }
-
-  var moduleIds2moduleIds = function(si, ids) {
-    var module_node_ids = [];
-    si.iterEdges(function(e) {
-        if (!e.attr.edge_type) // call edge
-        {
-          if (~ids.indexOf(e.target))
-            module_node_ids.push(e.source);
-          else if (~ids.indexOf(e.source))
-            module_node_ids.push(e.target);
-        }
-    });
-    return module_node_ids;
-  }
-
-  var moduleIds2applicationIds = function(si, module_ids) {
-    var app_ids = [];
-    si.iterEdges(function(e) {
-        if (e.attr.edge_type == "am" && ~module_ids.indexOf(e.source)) 
-          app_ids.push(e.target);
-    });
-    return app_ids;
-  }
 
   // This function will be called, if a node was clicked.
   var activateNode = function(event) { 
@@ -271,7 +310,7 @@ relatio.initWorld = function() {
         // Change a current set of nodes
         current_node_id = node.id;
         // Get brothers of the function node.
-        current_node_ids = applicationIds2modulesIds(si, [parent_node.id]);
+        current_node_ids = si.applicationIds2modulesIds([parent_node.id]);
         break;
 
       case "app":
@@ -313,7 +352,7 @@ relatio.initWorld = function() {
         var application_node_ids = ids.concat(donor_node_ids)
                                       .concat(rcpnt_node_ids);
         visible_node_ids = module_node_ids.concat(application_node_ids)
-            .concat(moduleIds2moduleIds(si, module_node_ids));
+            .concat(si.moduleIds2moduleIds(module_node_ids));
         break;
 
 
@@ -332,7 +371,7 @@ relatio.initWorld = function() {
         });
         var module_ids = ids.concat(donor_node_ids).concat(rcpnt_node_ids);
         visible_node_ids = module_ids
-                         .concat(moduleIds2applicationIds(si, module_ids));
+                         .concat(si.moduleIds2applicationIds(module_ids));
     }
 
     // Pane root element
@@ -1016,6 +1055,36 @@ relatio.initWorld = function() {
   // Draw the graph :
   // - directly redraw labels (2)
   si.draw(-1, 1, 2);
+
+  $(".group-checkbox").click(function(e) {
+      var cur   = $(this);
+      var block = cur.parents(".sub-block:first");
+      var cbs   = $(".checkbox", block);
+      var is_selected = !cur.hasClass("selected");
+      if (is_selected)
+          cbs.addClass("selected");
+      else
+          cbs.removeClass("selected");
+      si.selectNodes(cbs.dataArray("node_id"), is_selected);
+      return false;
+  });
+
+  $(".group-checkbox").on("mouseover mouseout", function(e) {
+      var cur = $(this);
+      var blk = cur.parents(".sub-block:first");
+
+      switch (e.type) {
+        case "mouseover":
+          blk.addClass("hovered-group-cb");
+          break;
+
+        case "mouseout":
+          blk.removeClass("hovered-group-cb");
+          break;
+      }
+      return false;
+  });
+
 
   $(document).on("keydown keyup", function(e) {
     if (e.keyCode == keyCodes.SHIFT) {

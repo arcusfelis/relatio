@@ -88,30 +88,39 @@ $(function() {
             Application <span class="application-name">ApplicationName</span>
         </div>
 
-        <div id="modules" class="sub-block active-block">
+        <div id="modules" class="sub-block active-block cb-block">
             <div class="sub-block-header">
+              <span class="header-group">
+                <span class="checkbox group-checkbox"></span>
                 <a tabindex="0" class="header-closed">Modules&hellip;</a>
                 <a tabindex="0" class="header-opened">Modules:</a>
-                <span class="module-count header-count-info"
-                    title="Total module count">
-                </span>
+              </span>
+              <span class="module-count header-count-info"
+                  title="Total module count">
+              </span>
             </div>
             <div id="module-list" class="content-block"></div>
         </div>
 
-        <div id="directions-out" class="sub-block active-block">
+        <div id="directions-out" class="sub-block active-block cb-block">
             <div class="sub-block-header">
+              <span class="header-group">
+                <span class="checkbox group-checkbox"></span>
                 <a tabindex="0" class="header-closed">Calls to&hellip;</a>
                 <a tabindex="0" class="header-opened">Calls to:</a>
-                <span class="direction-out-count header-count-info"></span>
+              </span>
+              <span class="direction-out-count header-count-info"></span>
             </div>
             <div id="directions-list-out" class="content-block"></div>
         </div>
 
-        <div id="directions-in" class="sub-block active-block">
+        <div id="directions-in" class="sub-block active-block cb-block">
             <div class="sub-block-header">
-                <a tabindex="0" class="header-closed">Called from&hellip;</a>
-                <a tabindex="0" class="header-opened">Called from:</a>
+                <span class="header-group">
+                  <span class="checkbox group-checkbox"></span>
+                  <a tabindex="0" class="header-closed">Called from&hellip;</a>
+                  <a tabindex="0" class="header-opened">Called from:</a>
+                </span>
                 <span class="direction-in-count header-count-info"></span>
             </div>
             <div id="directions-list-in" class="content-block"></div>
@@ -121,20 +130,26 @@ $(function() {
     <input type="text" id="search-field" />
     <div id="search-pane" class="pane">
         <div id="search-results">
-            <div id="applications" class="sub-block active-block">
-                <div class="sub-block-header">
-                    <a tabindex="0" class="header-closed">Applications&hellip;</a>
-                    <a tabindex="0" class="header-opened">Applications:</a>
-                    <span class="application-count header-count-info"></span>
-                </div>
-                <div id="application-list" class="content-block"></div>
+            <div id="applications" class="sub-block active-block cb-block">
+              <div class="sub-block-header">
+                <span class="header-group">
+                  <span class="checkbox group-checkbox"></span>
+                  <a tabindex="0" class="header-closed">Applications&hellip;</a>
+                  <a tabindex="0" class="header-opened">Applications:</a>
+                </span>
+                <span class="application-count header-count-info"></span>
+              </div>
+              <div id="application-list" class="content-block"></div>
             </div>
 
-            <div id="modules" class="sub-block active-block">
+            <div id="modules" class="sub-block active-block cb-block">
                 <div class="sub-block-header">
+                  <span class="header-group">
+                    <span class="checkbox group-checkbox"></span>
                     <a tabindex="0" class="header-closed">Modules&hellip;</a>
                     <a tabindex="0" class="header-opened">Modules:</a>
-                    <span class="module-count header-count-info"></span>
+                  </span>
+                  <span class="module-count header-count-info"></span>
                 </div>
                 <div id="module-list" class="content-block"></div>
             </div>
