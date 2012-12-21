@@ -527,14 +527,20 @@ relatio.initWorld = function() {
     return si._core.width - calculateRightPanelSize();
   }
 
+  var isEmptyArea = function(elem) {
+      return !~["LABEL", "INPUT"].indexOf(elem.tagName);
+  }
   // Handler for closing the pane
   $("#graph-directions").click(function(e) {
-    closeDirectionSidebar();
+    if (isEmptyArea(e.target))
+      closeDirectionSidebar();
   });
 
   $("#search-pane").click(function(e) {
-    closeSearchSidebar();
+    if (isEmptyArea(e.target))
+      closeSearchSidebar();
   });
+
 
   /////////////////////// Key Handlers ///////////////////////////////
 
@@ -658,13 +664,20 @@ relatio.initWorld = function() {
     var cc = e.charCode;
 
     switch (kc) {
+      case keyCodes.PAGEUP:
+      case keyCodes.PAGEDOWN:
+        var dir = kc == keyCodes.PAGEUP ? 0.5 : -0.5;
+        var p = this.pane;
+        p.data("jsp").scrollByY(-p.innerHeight() * dir, false);
+        $("a:visible:onScreen:first", this.pane).focus();
+        break;
+
       case keyCodes.ESCAPE:
         if (isDirectionSidebarOpen())
           closeDirectionSidebar();
         else if (isSearchingSidebarOpen())
           closeSearchSidebar();
         break;
-
       
       case keyCodes.ENTER:
         if ($(":focus").attr("id") == "search-field")
@@ -679,6 +692,14 @@ relatio.initWorld = function() {
 
     
     switch (cc) {
+      case charCodes.WHITESPACE:
+        // Emulate click on a checkbox
+        var ee = $.Event("click");
+        ee.shiftKey = e.shiftKey;
+        $(":focus").prevAll(".checkbox:first").trigger(ee);
+        return false;
+        break;
+
       case charCodes.h:
       // the left key, the prev pane
       case charCodes.l:
@@ -803,7 +824,7 @@ relatio.initWorld = function() {
 
 
 
-  $(document).keypress(function(e) {
+  $(document).on("keypress.relatioWindowHandler", function(e) {
 
     var win = wm.current();
 
@@ -1003,7 +1024,10 @@ relatio.initWorld = function() {
     }
   });
   $("#search-field").keyup(tryToSearch);
-  $("#search-results, #graph-directions").jScrollPane({trackClickRepeatFreq: 20});
+  $("#search-results, #graph-directions").jScrollPane({
+      trackClickRepeatFreq: 20,
+      enableKeyboardNavigation: false
+  });
 
 
 
@@ -1086,7 +1110,7 @@ relatio.initWorld = function() {
   });
 
 
-  $(document).on("keydown keyup", function(e) {
+  $(document).on("keydown.relatio keyup.relatio", function(e) {
     if (e.keyCode == keyCodes.SHIFT) {
       switch (e.type) {
         case "keydown":

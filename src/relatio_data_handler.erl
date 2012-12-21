@@ -38,41 +38,43 @@ terminate(_Req, _State) ->
 
 generate_xml() ->
     %% TODO: rewrite this function completely.
-    Dir = "/home/user/erlang/esl/ejabberd/apps/ejabberd",
-    case whereis(relatio_ex1) of
-        undefined ->
-            {ok, Xref} = xref:start(relatio_ex1),
-            xref:add_application(Xref, Dir),
-            Xref;
-        Xref ->
-            Xref
-    end,
+    Dir1 = "/home/user/erlang/esl/ejabberd/apps/ejabberd",
+    Dir2 = code:lib_dir(stdlib),
+    Dir3 = code:lib_dir(kernel),
 
     case whereis(inferno_server) of
         undefined ->
-            {ok, Info} = inferno_server:start(Dir, []),
+            {ok, Info} = inferno_server:start([]),
+            inferno_server:add_application(Info, Dir1),
+            inferno_server:add_application(Info, Dir2),
+            inferno_server:add_application(Info, Dir3),
             erlang:register(inferno_server, self()),
             Info;
         Info ->
             Info
     end,
-    link(Xref),
     link(Info),
+
+    {ok, Xref} = xref:start([]),
+%%  xref:add_module(Xref, Path),
+    link(Xref),
+
     try
         gexf:to_string(gexf_xref:generate(Xref, Info))
     after 
-        unlink(Xref),
+        xref:stop(Xref),
         unlink(Info)
     end.
+
 
 generate_world_xml() ->
     %% TODO: rewrite this function completely.
     Dir1 = "/home/user/erlang/esl/ejabberd/apps/ejabberd",
     Dir2 = code:lib_dir(stdlib),
     Dir3 = code:lib_dir(kernel),
-    case whereis(relatio_ex2) of
+    case whereis(relatio_world) of
         undefined ->
-            {ok, Xref} = xref:start(relatio_ex2),
+            {ok, Xref} = xref:start(relatio_world),
             xref:add_application(Xref, Dir1),
             xref:add_application(Xref, Dir2),
             xref:add_application(Xref, Dir3),
@@ -86,3 +88,5 @@ generate_world_xml() ->
     after 
         unlink(Xref)
     end.
+
+

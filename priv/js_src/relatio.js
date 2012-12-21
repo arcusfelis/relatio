@@ -724,6 +724,7 @@ $.fn.activateAutoResizeMonitor = function() {
 };
 
 $.fn.updateScrolling = function() {
+  console.log("upd");
   var area = this;
   if (area.jspUpdateTimeout)
       clearTimeout(area.timeout);
@@ -747,10 +748,12 @@ var relatio = {};
 relatio.keyBoard = {};
 relatio.utils = {};
 relatio.keyBoard.keyCodes = {
-    ESCAPE:   27,
-    ENTER:    13,
-    SHIFT:    16,
-    TAB:      9
+    ESCAPE:     27,
+    ENTER:      13,
+    SHIFT:      16,
+    TAB:        9,
+    PAGEDOWN:   34,
+    PAGEUP:     33
 };
 relatio.keyBoard.charCodes = {
     H:        72,
@@ -784,7 +787,8 @@ relatio.keyBoard.charCodes = {
     SLASH:    47,
     TILDA:    126,
     GRAVE:    96,
-    RIGHT_PARENTHESIS: 41
+    RIGHT_PARENTHESIS: 41,
+    WHITESPACE: 32
 };
 
 // Move from id on `offset` nodes forward using ids as an index,
@@ -800,4 +804,20 @@ relatio.utils = function nextNode(offset, id, ids)
   return ids[new_index];
 };
 
+
+(function($) {
+  $.expr[":"].onScreen = function(elem) {
+    var $window = $(window),
+        viewport_top = $window.scrollTop(),
+        viewport_height = $window.height(),
+        viewport_bottom = viewport_top + viewport_height,
+        $elem = $(elem),
+        top = $elem.offset().top,
+        height = $elem.height(),
+        bottom = top + height;
+
+    return (top >= viewport_top && top < viewport_bottom) &&
+           (bottom > viewport_top && bottom <= viewport_bottom); 
+}
+})(jQuery);
 
