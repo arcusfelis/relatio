@@ -724,7 +724,6 @@ $.fn.activateAutoResizeMonitor = function() {
 };
 
 $.fn.updateScrolling = function() {
-  console.log("upd");
   var area = this;
   if (area.jspUpdateTimeout)
       clearTimeout(area.timeout);
@@ -732,7 +731,8 @@ $.fn.updateScrolling = function() {
   var updateScrollingNow = function(area) {
     var jsp = area.data("jsp");
     var pane = $(".jspPane", area);
-    jsp.reinitialise();
+    if (jsp)
+      jsp.reinitialise();
   };
 
   var f = function() {

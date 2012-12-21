@@ -687,7 +687,7 @@ relatio.initWorld = function() {
         }
         break;
     }
-    if ($("input:focus").length)
+    if ($("input[type=text]:focus").length)
       return true;
 
     
@@ -793,7 +793,7 @@ relatio.initWorld = function() {
         repeatCount = repeatCount || 1;
 
         var cur = $(":focus"),
-            set = $(".pane a:visible"),
+            set = $(".pane:visible [tabindex]:visible"),
             pos = 0,
             len = set.length;
 
@@ -1093,6 +1093,7 @@ relatio.initWorld = function() {
       return false;
   });
 
+  // Handler for a group selector.
   $(".group-checkbox").on("mouseover mouseout", function(e) {
       var cur = $(this);
       var blk = cur.parents(".sub-block:first");
@@ -1107,6 +1108,16 @@ relatio.initWorld = function() {
           break;
       }
       return false;
+  });
+
+  $(".radio").on("click", function(e) {
+    var $this = $(this),
+        g = $this.parents(".radio-group");
+    // Deselect other in the group
+    $(".radio", g).not(this).removeClass("selected");
+    $this.addClass("selected");
+    $("input[type=radio]").attr("checked", "checked");
+    return false;
   });
 
 

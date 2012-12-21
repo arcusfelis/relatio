@@ -426,6 +426,10 @@ body.world li {
     list-style-type: none;
 }
 
+.checkbox {
+    cursor: hand;
+}
+
 .checkbox:before {
     font-size: 16pt;
     position: relative;
@@ -447,7 +451,7 @@ body.shift-pressed .checkbox.will-be-selected {
     color: white;
 }
 
-a:focus {
+a:focus, li:focus {
     outline-style: none;
     background: DarkSlateGray;
 }
@@ -475,4 +479,45 @@ a:hover {
     right: 10px;
     width: 5px;
     height: 5px;
+}
+
+
+.radio input[type=radio] {
+    display: none;
+}
+
+.radio {
+    color: #CCC;
+}
+
+.radio:hover {
+    color: #FFF;
+}
+
+.radio.selected:before {
+    font-size: 16pt;
+    position: relative;
+    content: "\25c9";
+}
+
+.radio:before {
+    font-size: 16pt;
+    position: relative;
+    content: "\25ef";
+}
+
+ul.radio-group {
+    list-style-type: none;
+    margin-left: 0;
+}
+
+input[type=button] {
+    margin: 5px;
+    background: #000;
+    color: #CCC;
+    border: 1px solid #CCC;
+}
+
+input[type=button]:hover {
+    border: 1px solid #FFF;
 }
