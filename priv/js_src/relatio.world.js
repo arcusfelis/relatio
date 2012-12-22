@@ -1116,11 +1116,12 @@ relatio.initWorld = function() {
     // Deselect other in the group
     $(".radio", g).not(this).removeClass("selected");
     $this.addClass("selected");
-    $("input[type=radio]").attr("checked", "checked");
+    $("input[type=radio]", this).attr("checked", "checked");
     return false;
   });
 
 
+  // Add a class, that tells us about the shift key status.
   $(document).on("keydown.relatio keyup.relatio", function(e) {
     if (e.keyCode == keyCodes.SHIFT) {
       switch (e.type) {
@@ -1132,5 +1133,49 @@ relatio.initWorld = function() {
       }
     }
   });
+
+  // Find out, which application and module nodes are selected.
+  // If all module nodes of some application is selected, than the application
+  // node is selected.
+  var calculateMinSelectedNodeSet = function() {
+    var selectedNodeInfo = [];
+    si.iterNodes(function(n) {
+      switch (n.attr.node_type) {
+        case "app":
+          var moduleIds = si.applicationIds2modulesIds([n.id]);
+          var moduleNodes = si.getNodes(moduleIds);
+          var selectedModNodes = moduleNodes.filter(function(mn) { return mn.attr.is_selected; });
+          if (moduleNodes.length == selectedModNodes.length)
+          {
+              // All module nodes are selected. The result is an application node.
+              selectedNodeInfo.push({type: "app", name: n.label});
+          } else {
+              for (var i = 0; i < selectedModNodes.length; i++)
+              {
+                  var mn = selectedModNodes[i];
+                  selectedNodeInfo.push({type: "module", name: mn.label});
+              }
+          }
+      }
+    });
+    console.dir(selectedNodeInfo);
+    return selectedNodeInfo;
+  }
+
+  var submitDetalize = function(e) {
+    var form = $(e.target).parents("form:first");
+    var modeElem = $("input[type=radio]:checked", form);
+    switch (modeElem.val())
+    {
+      case "selected":
+        calculateMinSelectedNodeSet();
+        break;
+
+      default:
+        console.log("unknown val " + modeElem.val());
+    }
+  }
+
+  $("[name=submit_detalize]").click(submitDetalize);
 }
 

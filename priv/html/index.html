@@ -160,20 +160,22 @@ $(function() {
                     <a tabindex="0" class="header-opened">Detalize:</a>
                 </div>
                 <div class="content-block">
-                  <fieldset>
-                    <legend>Nodes:</legend>
-                    <ul class="radio-group">
-                      <li class="radio selected" tabindex="0">
-                        <input type="radio" name="mode" value="selected" checked="checked" />
-                        Selected
-                      </li>
-                      <li class="radio" tabindex="0">
-                        <input type="radio" name="mode" value="visible" />
-                        Visible now
-                      </li>
-                    </ul>
-                  </fieldset>
-                  <input type="button" tabindex="0" value="Go" />
+                  <form>
+                    <fieldset>
+                      <legend>Nodes:</legend>
+                      <ul class="radio-group">
+                        <li class="radio selected" tabindex="0">
+                          <input type="radio" name="mode" value="selected" checked="checked" />
+                          Selected
+                        </li>
+                        <li class="radio" tabindex="0">
+                          <input type="radio" name="mode" value="visible" />
+                          Visible now
+                        </li>
+                      </ul>
+                    </fieldset>
+                    <input name="submit_detalize" type="button" tabindex="0" value="Go" />
+                  </form>
                 </div>
             </div>
         </div>
