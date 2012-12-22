@@ -902,6 +902,10 @@ relatio.initWorld = function() {
       $("body").toggleClass("active-tip-switch");
   });
 
+  $("#open-detalize a").click(function(e) { 
+      $("body").toggleClass("active-detaize-form");
+  });
+
   $("#noise-switch a").click(function(e) { 
       var is_disabled = $(this).parent().hasClass("active-block");
       si.noiseFilter(!is_disabled);
@@ -1137,14 +1141,14 @@ relatio.initWorld = function() {
   // Find out, which application and module nodes are selected.
   // If all module nodes of some application is selected, than the application
   // node is selected.
-  var calculateMinSelectedNodeSet = function() {
+  var calculateMinSelectedNodeSet = function(isInSet) {
     var selectedNodeInfo = [];
     si.iterNodes(function(n) {
       switch (n.attr.node_type) {
         case "app":
           var moduleIds = si.applicationIds2modulesIds([n.id]);
           var moduleNodes = si.getNodes(moduleIds);
-          var selectedModNodes = moduleNodes.filter(function(mn) { return mn.attr.is_selected; });
+          var selectedModNodes = moduleNodes.filter(isInSet);
           if (moduleNodes.length == selectedModNodes.length)
           {
               // All module nodes are selected. The result is an application node.
@@ -1165,14 +1169,19 @@ relatio.initWorld = function() {
   var submitDetalize = function(e) {
     var form = $(e.target).parents("form:first");
     var modeElem = $("input[type=radio]:checked", form);
+    var info;
     switch (modeElem.val())
     {
       case "selected":
-        calculateMinSelectedNodeSet();
+        info = calculateMinSelectedNodeSet(function(mn) { return mn.attr.is_selected; });
+        break;
+
+      case "visible":
+        info = calculateMinSelectedNodeSet(function(mn) { return !mn.hidden; });
         break;
 
       default:
-        console.log("unknown val " + modeElem.val());
+        throw("Unknown value " + modeElem.val());
     }
   }
 

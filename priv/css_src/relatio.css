@@ -521,3 +521,29 @@ input[type=button] {
 input[type=button]:hover {
     border: 1px solid #FFF;
 }
+
+fieldset {
+    background: #000;
+}
+
+legend {
+    color: #FFF;
+}
+      
+#detalization-form {
+    display: none;
+}
+
+body.active-detaize-form 
+#detalization-form {
+    display: block;
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    z-index: 9999;
+}
+
+#detalization-form ul {
+    margin: 0px;
+    padding: 0px;
+}

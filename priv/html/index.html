@@ -70,6 +70,11 @@ $(function() {
           <a tabindex="0" id="target-color"
               title="Set the edge color of the source node.">T</a>
         </span>
+        <span class="delim">|</span>
+        <span id="open-detalize" class="disable-mouse-selection sub-block">
+          <a tabindex="0" class="header-closed">Detalize&hellip;</a>
+          <a tabindex="0" class="header-opened">Detalize:</a>
+        </span>
     </div>
 
     <div id="info-tip"></div>
@@ -153,31 +158,6 @@ $(function() {
                 </div>
                 <div id="module-list" class="content-block"></div>
             </div>
-
-            <div class="sub-block">
-                <div class="sub-block-header">
-                    <a tabindex="0" class="header-closed">Detalize&hellip;</a>
-                    <a tabindex="0" class="header-opened">Detalize:</a>
-                </div>
-                <div class="content-block">
-                  <form>
-                    <fieldset>
-                      <legend>Nodes:</legend>
-                      <ul class="radio-group">
-                        <li class="radio selected" tabindex="0">
-                          <input type="radio" name="mode" value="selected" checked="checked" />
-                          Selected
-                        </li>
-                        <li class="radio" tabindex="0">
-                          <input type="radio" name="mode" value="visible" />
-                          Visible now
-                        </li>
-                      </ul>
-                    </fieldset>
-                    <input name="submit_detalize" type="button" tabindex="0" value="Go" />
-                  </form>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -190,6 +170,26 @@ $(function() {
     <div id="main-selected-mark"></div>
     <div id="directions-selected-mark"></div>
     <div id="searching-selected-mark"></div>
+
+    <form id="detalization-form">
+      <fieldset>
+        <legend>Detalization request:</legend>
+        <fieldset>
+          <legend>Nodes:</legend>
+          <ul class="radio-group">
+            <li class="radio selected" tabindex="0">
+              <input type="radio" name="mode" value="selected" checked="checked" />
+              Selected
+            </li>
+            <li class="radio" tabindex="0">
+              <input type="radio" name="mode" value="visible" />
+              Visible now
+            </li>
+          </ul>
+        </fieldset>
+        <input name="submit_detalize" type="button" tabindex="0" value="Go" />
+      </fieldset>
+    </form>
   </div>
 </body>
 </html>
