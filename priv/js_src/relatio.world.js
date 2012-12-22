@@ -1114,14 +1114,31 @@ relatio.initWorld = function() {
       return false;
   });
 
-  $(".radio").on("click", function(e) {
+  /* Browser can save a state of the radio button after page reloading. */
+  var validateRadioButtonState = function()
+  {
+    var $rb = $(this);
+    // Is it has the sub element that is checked?
+  }
+
+  var radioBtns = $(".radio").on("click", function(e) {
+    if (e.target.tagName == "INPUT")
+      return; // recursion exit
+  
     var $this = $(this),
         g = $this.parents(".radio-group");
     // Deselect other in the group
     $(".radio", g).not(this).removeClass("selected");
     $this.addClass("selected");
-    $("input[type=radio]", this).attr("checked", "checked");
+    $("input[type=radio]", this).click();
     return false;
+  });
+
+  $("input", radioBtns).change(function(e) {
+    if (!$(this).attr("checked"))
+      $rb.removeClass("selected");
+    else
+      $rb.addClass("selected");
   });
 
 
@@ -1169,7 +1186,7 @@ relatio.initWorld = function() {
   var submitDetalize = function(e) {
     var form = $(e.target).parents("form:first");
     var modeElem = $("input[type=radio]:checked", form);
-    var info;
+    var info = [];
     switch (modeElem.val())
     {
       case "selected":
@@ -1183,6 +1200,12 @@ relatio.initWorld = function() {
       default:
         throw("Unknown value " + modeElem.val());
     }
+
+    if (!info.length)
+      noty({text: "The node set is empty.",
+            type: "error",
+            layout: "bottomCenter",
+            timeout: 3000});
   }
 
   $("[name=submit_detalize]").click(submitDetalize);
