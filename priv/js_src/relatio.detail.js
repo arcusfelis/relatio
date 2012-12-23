@@ -1,4 +1,4 @@
-relatio.initDetail = function() {
+relatio.initDetail = function(nodeSetId) {
   var keyCodes = relatio.keyBoard.keyCodes,
       charCodes = relatio.keyBoard.charCodes;
 
@@ -84,7 +84,7 @@ relatio.initDetail = function() {
 
   // Parse a GEXF encoded file to fill the graph
   // (requires "sigma.parseGexf.js" to be included)
-  si.parseGexf('data/v-e-m.gexf');
+  si.parseGexf('data/v-e-m.gexf?node_set_id=' + nodeSetId);
   si.iterEdges(function(e) {
     if (e.weight)
       e.size = e.weight;
@@ -194,7 +194,7 @@ relatio.initDetail = function() {
   // This function will be called, if a node was clicked.
   var activateNode = function(event) { 
     var si = event.target; 
-    var ids = event.content;
+    var ids = event.content.slice(0, 1);
     var rcpnt_node_ids      = [];
     var donor_node_ids      = [];
     var module_node_ids     = [];

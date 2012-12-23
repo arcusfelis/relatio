@@ -9,3 +9,4 @@ deps/*
 .eunit
 doc/README.md
 log
+Mnesia.*

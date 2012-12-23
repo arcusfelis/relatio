@@ -276,7 +276,7 @@ relatio.initWorld = function() {
   // This function will be called, if a node was clicked.
   var activateNode = function(event) { 
     var si = event.target; 
-    var ids = event.content;
+    var ids = event.content.slice(0, 1);
     var rcpnt_node_ids      = [];
     var donor_node_ids      = [];
     var module_node_ids     = [];
@@ -1114,12 +1114,6 @@ relatio.initWorld = function() {
       return false;
   });
 
-  /* Browser can save a state of the radio button after page reloading. */
-  var validateRadioButtonState = function()
-  {
-    var $rb = $(this);
-    // Is it has the sub element that is checked?
-  }
 
   var radioBtns = $(".radio").on("click", function(e) {
     if (e.target.tagName == "INPUT")
@@ -1134,12 +1128,31 @@ relatio.initWorld = function() {
     return false;
   });
 
+
   $("input", radioBtns).change(function(e) {
-    if (!$(this).attr("checked"))
-      $rb.removeClass("selected");
-    else
-      $rb.addClass("selected");
+    var p = $(this).parents(".radio:first"),
+        g = p.parents(".radio-group");
+    $(".radio", g).not(p).removeClass("selected");
+    p.addClass("selected");
   });
+
+
+  /* Browser can save a state of the radio button after page reloading. */
+  var validateRadioButtonState = function()
+  {
+    var $rb = $(this);
+    // Is it has the sub element that is checked?
+    if ($("input:checked:first", $rb).length)
+      $rb.addClass("selected");
+    else
+      $rb.removeClass("selected");
+  }
+
+  // If we hit <F5>, then browser will reload the page and enter old values into
+  // a form. It will not create a change event.
+  radioBtns.each(validateRadioButtonState);
+
+
 
 
   // Add a class, that tells us about the shift key status.
@@ -1186,26 +1199,47 @@ relatio.initWorld = function() {
   var submitDetalize = function(e) {
     var form = $(e.target).parents("form:first");
     var modeElem = $("input[type=radio]:checked", form);
-    var info = [];
+    var data = [];
     switch (modeElem.val())
     {
       case "selected":
-        info = calculateMinSelectedNodeSet(function(mn) { return mn.attr.is_selected; });
+        data = calculateMinSelectedNodeSet(function(mn) { return mn.attr.is_selected; });
         break;
 
       case "visible":
-        info = calculateMinSelectedNodeSet(function(mn) { return !mn.hidden; });
+        data = calculateMinSelectedNodeSet(function(mn) { return !mn.hidden; });
         break;
 
       default:
         throw("Unknown value " + modeElem.val());
     }
 
-    if (!info.length)
+    if (!data.length) {
       noty({text: "The node set is empty.",
             type: "error",
             layout: "bottomCenter",
             timeout: 3000});
+      return false;
+    }
+
+    $.ajax({
+        async: false,
+        cache: false,
+        type: 'POST',
+        url: 'data/save_detalize',
+        data: {nodes: JSON.stringify(data)},
+        dataType: 'text',
+        contentType: 'application/x-www-form-urlencoded; charset=utf-8',
+        success: function(json){
+            if (json.length != 0){
+              var data = JSON.parse(json);
+              var id = data.node_set_id;
+              console.log("Save the node set under id = " + id);
+              window.location.assign("detail.html?id=" + id);
+            }
+        }
+    });
+
   }
 
   $("[name=submit_detalize]").click(submitDetalize);

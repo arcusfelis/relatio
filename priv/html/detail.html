@@ -17,7 +17,11 @@
 <!--
 $(function() {
     $(document).ready(function() {
-        relatio.initDetail();
+        var parts = /id=([0-9]+)/.exec(location.search);
+        if (!parts)
+            throw("Undefined parameter!");
+        var nodeSetId = parts[1];
+        relatio.initDetail(nodeSetId);
     });
 });
 -->

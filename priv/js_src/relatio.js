@@ -792,7 +792,7 @@ relatio.keyBoard.charCodes = {
 };
 
 // Move from id on `offset` nodes forward using ids as an index,
-relatio.utils = function nextNode(offset, id, ids)
+relatio.utils.nextNode = function(offset, id, ids)
 {
   var currect_index = ids.indexOf(id),
       len = ids.length;
