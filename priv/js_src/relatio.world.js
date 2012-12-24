@@ -883,7 +883,7 @@ relatio.initWorld = function() {
       default:
         if (cc >= charCodes.ZERO && cc <= charCodes.NINE)
             repeatCount = repeatCount * 10 + cc - charCodes.ZERO;
-      console.log("Key pressed: " + e.keyCode, " Char entered: " + e.charCode);
+//    console.log("Key pressed: " + e.keyCode, " Char entered: " + e.charCode);
     }
   };
             
@@ -1235,7 +1235,7 @@ relatio.initWorld = function() {
             if (json.length != 0){
               var data = JSON.parse(json);
               var id = data.node_set_id;
-              console.log("Save the node set under id = " + id);
+//            console.log("Save the node set under id = " + id);
               window.location.assign("detail.html?id=" + id);
             }
         }

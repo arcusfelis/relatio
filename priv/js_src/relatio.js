@@ -108,7 +108,7 @@ sigma.publicPrototype.zoomToNode = function(nid, ratio) {
           ratio = 10;
   }
 
-  console.log("node {" + node.displayX + ", " + node.displayY + "}");
+//console.log("node {" + node.displayX + ", " + node.displayY + "}");
   this.zoomToCoordinates(node.displayX, node.displayY, ratio);
 }
 
@@ -120,7 +120,7 @@ sigma.publicPrototype.zoomToCoordinates = function(displayX, displayY, ratio) {
   var m = this._core.mousecaptor;
   var s = this._core;
   if (!ratio) ratio = m.ratio;
-  console.log("Zoom to: ", displayX, ", ", displayY, " with ", ratio);
+//console.log("Zoom to: ", displayX, ", ", displayY, " with ", ratio);
   // Different formulas for diffenent cases
   if (ratio == m.ratio)
   {
@@ -171,7 +171,7 @@ sigma.publicPrototype.pickNode = function(nid) {
       break;
     
     default:
-      console.error("Unknown type");
+      throw "Unknown type";
   }
 }
 
@@ -429,7 +429,7 @@ var Ring = function(size)
      * Add an element at the end.
      */
     this.add = function(e) {
-      console.log("add " + e);
+//    console.log("add " + e);
       // Move the pointer on the next cell.
       currentN++;
 
@@ -454,7 +454,7 @@ var Ring = function(size)
      */
     this.check = function(e) {
       // If e is a next element, than save history.
-      console.log("check " + e + " " + this.next());
+//    console.log("check " + e + " " + this.next());
       show();
 
       if ((newestN != currentN) && (e == this.next()))
@@ -462,11 +462,11 @@ var Ring = function(size)
       else
         this.add(e);
 
-      console.dir(a);
+//    console.dir(a);
     }
 
     this.go = function(stepCount) {
-      console.log("GO TO " + stepCount);
+//    console.log("GO TO " + stepCount);
       show();
       currentN += stepCount;
 
@@ -599,8 +599,8 @@ var Tip = function(si)
 
       var canvasWidth = si.calculateCanvasWidth(),
           canvasHeight = si.calculateCanvasHeight(),
-          tipWidth = tip.outerWidth(),
-          tipHeight = tip.outerHeight();
+          tipWidth = view.outerWidth(),
+          tipHeight = view.outerHeight();
 
       // Calculate popup position.
       // Set X and Y, if the selected node is not on the screen.
