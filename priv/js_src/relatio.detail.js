@@ -79,8 +79,9 @@ relatio.initDetail = function(nodeSetId) {
     zoomDelta: 0.05
   });
 
-  si.addNode('zero', { 'x': 0, 'y': 0, 'hidden': true, 'alwaysHidden': true });
-  si.addNode('one',  { 'x': 1, 'y': 1, 'hidden': true, 'alwaysHidden': true });
+  si.addNode('zero', {'x':  0, 'y':  0, 'hidden': true, 'alwaysHidden': true});
+  si.addNode('one',  {'x':  1, 'y':  1, 'hidden': true, 'alwaysHidden': true});
+  si.addNode('-one', {'x': -1, 'y': -1, 'hidden': true, 'alwaysHidden': true});
 
   // Parse a GEXF encoded file to fill the graph
   // (requires "sigma.parseGexf.js" to be included)
