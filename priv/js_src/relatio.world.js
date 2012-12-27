@@ -657,6 +657,22 @@ relatio.initWorld = function() {
     }
   } // End of the `canvasKeyPressHandler` function.
 
+      
+  $("#search-field").on("keypress.relatioSearchFieldHandler", function(e) {
+    e.stopPropagation();
+    var kc = e.keyCode;
+    var cc = e.charCode;
+
+    switch (kc) {
+      case keyCodes.ENTER:
+        if ($(":focus").attr("id") == "search-field")
+        {
+          $("#search-pane a:visible:first").focus();
+          return false;
+        }
+        break;
+   }
+  });
 
   var panelKeyPressHandler = function(e) {
     var m = si._core.mousecaptor;
@@ -679,18 +695,9 @@ relatio.initWorld = function() {
         else if (isSearchingSidebarOpen())
           closeSearchSidebar();
         break;
-      
-      case keyCodes.ENTER:
-        if ($(":focus").attr("id") == "search-field")
-        {
-          $("#search-pane a:visible:first").focus();
-          return false;
-        }
-        break;
     }
     if ($("input[type=text]:focus").length)
       return true;
-
     
     switch (cc) {
       case charCodes.WHITESPACE:
