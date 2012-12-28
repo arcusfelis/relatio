@@ -29,7 +29,7 @@ $(function() {
 
 
 </head>
-<body class="source-color active-tip-switch main-selected world">
+<body class="source-color active-tip-switch main-selected world active-lmm">
   <div id="container">
 
     <div id="top-panel">
@@ -63,6 +63,14 @@ $(function() {
               title="Show &quot;module-to-module&quot; edges.">MM</a>
           <a tabindex="0" class="header-opened"
               title="Hide &quot;module-to-module&quot; edges.">MM</a>
+        </span>
+        <span class="delim">|</span>
+        <span id="lmm-edge-switch" 
+              class="disable-mouse-selection active-block sub-block">
+          <a tabindex="0" class="header-closed"
+              title="Show local &quot;module-to-module&quot; edges.">LMM</a>
+          <a tabindex="0" class="header-opened"
+              title="Hide local &quot;module-to-module&quot; edges.">LMM</a>
         </span>
         <span class="delim">|</span>
         <span id="edge-direction-selector" class="disable-mouse-selection">
@@ -107,6 +115,31 @@ $(function() {
             </div>
             <div id="module-list" class="content-block"></div>
         </div>
+
+        <div id="local-directions-out" class="sub-block active-block cb-block">
+            <div class="sub-block-header">
+              <span class="header-group">
+                <span class="checkbox group-checkbox"></span>
+                <a tabindex="0" class="header-closed">Calls locally to&hellip;</a>
+                <a tabindex="0" class="header-opened">Calls locally to:</a>
+              </span>
+              <span class="local-direction-out-count header-count-info"></span>
+            </div>
+            <div id="local-directions-list-out" class="content-block"></div>
+        </div>
+
+        <div id="local-directions-in" class="sub-block active-block cb-block">
+            <div class="sub-block-header">
+                <span class="header-group">
+                  <span class="checkbox group-checkbox"></span>
+                  <a tabindex="0" class="header-closed">Called locally from&hellip;</a>
+                  <a tabindex="0" class="header-opened">Called locally from:</a>
+                </span>
+                <span class="local-direction-in-count header-count-info"></span>
+            </div>
+            <div id="local-directions-list-in" class="content-block"></div>
+        </div>
+
 
         <div id="directions-out" class="sub-block active-block cb-block">
             <div class="sub-block-header">

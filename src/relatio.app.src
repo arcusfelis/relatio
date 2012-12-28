@@ -12,7 +12,8 @@
         mimetypes,
 		cowboy,
         bullet,
-        jsx
+        jsx,
+        mnesia
 	]},
     {mod, {relatio, []}},
 	{env, []}

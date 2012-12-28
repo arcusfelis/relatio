@@ -12,6 +12,7 @@ start() ->
 	application:start(cowboy),
 	application:start(jsx),
 	application:start(bullet),
+	application:start(mnesia),
 	application:start(relatio).
 
 

@@ -101,9 +101,15 @@ relatio.initWorld = function() {
   searchingWindow.pane = $("#search-pane");
 
 
-  var current_node_id, current_node_ids, current_hovered_node;
+  var current_node_id, current_node_ids, current_hovered_node,
+      application_ids, app_nid_to_mod_nids, app_nid_to_eids,
+      mod_id_to_app_id;
+
+  var clearCurrentAppNode, setCurrentAppNode, updateCurrentAppNode;
 
   var active_node_history = new Ring(10);
+
+
 
 
 
@@ -278,11 +284,14 @@ relatio.initWorld = function() {
   var activateNode = function(event) { 
     var si = event.target; 
     var ids = event.content.slice(0, 1);
-    var rcpnt_node_ids      = [];
-    var donor_node_ids      = [];
-    var module_node_ids     = [];
-    var function_node_ids   = [];
-    var visible_node_ids    = [];
+    var rcpnt_node_ids       = [];
+    var donor_node_ids       = [];
+    var local_rcpnt_node_ids = [];
+    var local_donor_node_ids = [];
+    var module_node_ids      = [];
+    var function_node_ids    = [];
+    var visible_node_ids     = [];
+    var app_node_id;
 
     var node_id = ids[0];
     var node = si.getNodeById(node_id);
@@ -312,6 +321,8 @@ relatio.initWorld = function() {
         current_node_id = node.id;
         // Get brothers of the function node.
         current_node_ids = si.applicationIds2modulesIds([parent_node.id]);
+
+        app_node_id = parent_node.id;
         break;
 
       case "app":
@@ -323,6 +334,8 @@ relatio.initWorld = function() {
         // Change a current set of nodes
         current_node_id = node.id;
         current_node_ids = application_ids;
+
+        app_node_id = node.id;
     }
 
 
@@ -359,20 +372,37 @@ relatio.initWorld = function() {
 
       case "module":
         si.iterEdges(function(e) {
-          if (~ids.indexOf(e.source) && e.attr.edge_type != "am") {
-            // This edge is out.
-            // The selected node calls the iterated node.
-            donor_node_ids.push(e.target);
-          }
-          else if (~ids.indexOf(e.target)) {
-            // This edge is in.
-            // The selected node is called by the iterated node.
-            rcpnt_node_ids.push(e.source);
+          switch (e.attr.edge_type)
+          {
+            case undefined:
+              if (~ids.indexOf(e.source)) {
+                // This edge is out.
+                // The selected node calls the iterated node.
+                donor_node_ids.push(e.target);
+              }
+              else if (~ids.indexOf(e.target)) {
+                // This edge is in.
+                // The selected node is called by the iterated node.
+                rcpnt_node_ids.push(e.source);
+              };
+            case "lmm":
+              if (~ids.indexOf(e.source)) {
+                // This edge is out.
+                // The selected node calls the iterated node.
+                local_donor_node_ids.push(e.target);
+              }
+              else if (~ids.indexOf(e.target)) {
+                // This edge is in.
+                // The selected node is called by the iterated node.
+                local_rcpnt_node_ids.push(e.source);
+              };
           }
         });
         var module_ids = ids.concat(donor_node_ids).concat(rcpnt_node_ids);
         visible_node_ids = module_ids
-                         .concat(si.moduleIds2applicationIds(module_ids));
+                         .concat(si.moduleIds2applicationIds(module_ids))
+                         .concat(local_donor_node_ids)
+                         .concat(local_rcpnt_node_ids);
     }
 
     // Pane root element
@@ -380,6 +410,8 @@ relatio.initWorld = function() {
 
     si.hideAllNodes();
     si.showNodes(visible_node_ids);
+    
+    setCurrentAppNode(app_node_id);
     si.draw(2, 1);
 
     if (donor_node_ids.length > 0)
@@ -404,6 +436,30 @@ relatio.initWorld = function() {
     else
     {
       $("#directions-in", pane).hide();
+    }
+
+    if (local_donor_node_ids.length > 0)
+    {
+      var ul_out = nodeIdsToHtml(si, local_donor_node_ids);
+      $("#local-directions-list-out", pane).empty().append(ul_out);
+      $(".local-direction-out-count", pane).text(local_donor_node_ids.length);
+      $("#local-directions-out", pane).show();
+    }
+    else
+    {
+      $("#local-directions-out", pane).hide();
+    }
+
+    if (local_rcpnt_node_ids.length > 0)
+    {
+      var ul_in  = nodeIdsToHtml(si, local_rcpnt_node_ids);
+      $("#local-directions-list-in", pane).empty().append(ul_in);
+      $(".local-direction-in-count", pane).text(local_rcpnt_node_ids.length);
+      $("#local-directions-in", pane).show();
+    }
+    else
+    {
+      $("#local-directions-in", pane).hide();
     }
 
     if (module_node_ids.length > 0)
@@ -465,6 +521,8 @@ relatio.initWorld = function() {
   var closeDirectionSidebar = function(saveHistory) {
     wm.deactivate(dirWindow);
     si.showAllNodes();
+    // Hide previusly shown edges.
+    clearCurrentAppNode();
     si.draw(2, 1);
     $("body").removeClass("directions-active"); 
     
@@ -900,9 +958,13 @@ relatio.initWorld = function() {
   var nextModNodeId = 3;
   var firstModNodeId = 3;
 
-  // Hide module-function edges.
   si.iterEdges(function(edge) {
-    if (edge.attr.edge_type == "am") edge.hidden = true;
+    switch (edge.attr.edge_type) {
+      // Hide module-function edges.
+      case "am":  edge.hidden = true; break;
+      // Hide local module-to-module edges.
+      case "lmm": edge.hidden = true; break;
+    }
   });
 
 
@@ -937,6 +999,31 @@ relatio.initWorld = function() {
       });
       si.draw(2, 1);
   });
+
+  // BEGIN LMM
+  $("#lmm-edge-switch a").click(function(e) { 
+      $("body").toggleClass("active-lmm");
+      updateCurrentAppNode();
+  });
+
+  var current_app_node_id;
+  setCurrentAppNode = function(app_node_id) {
+    var enabled = app_node_id && $("body").hasClass("active-lmm");
+
+    current_app_node_id = app_node_id;
+    si.showEdges(enabled ? app_nid_to_eids[app_node_id] : [], "local_app_edges");
+    si.draw(2, 1);
+  }
+
+  clearCurrentAppNode = function() {
+    current_app_node_id = undefined;
+    updateCurrentAppNode();
+  }
+
+  updateCurrentAppNode = function() {
+    setCurrentAppNode(current_app_node_id);
+  }
+  // END LMM
 
   $("#graph-main canvas").on('dblclick', resetScale);
 
@@ -1043,14 +1130,14 @@ relatio.initWorld = function() {
 
 
 
+    application_ids = [];
 
-  var application_ids = [];
   // Add nodes index for n and N keys
   si.iterNodes(function(node) {
 //    activateNode({target: this, context: [node.id]});
       switch (node.attr.node_type)
       {
-        case "module":
+        case "app":
           application_ids.push(node.id);
       }
      node.active = false;
@@ -1059,6 +1146,53 @@ relatio.initWorld = function() {
   // Set modules as current nodes
   current_node_id = application_ids[0];
   current_node_ids = application_ids;
+
+
+
+  // BEGIN filling of app_nid_to_mod_nids, mod_id_to_app_id and app_nid_to_eids.
+  // Build an initially empty index structure.
+  app_nid_to_mod_nids = [];
+  app_nid_to_eids = [];
+  mod_id_to_app_id = [];
+
+  for (var i = 0, l = application_ids.length; i < l; i++)
+  {
+    var app_id = application_ids[i];
+    app_nid_to_eids[app_id] = [];
+    app_nid_to_mod_nids[app_id] = [];
+  }
+
+  // Fill app_nid_to_mod_nids, mod_id_to_app_id.
+  si.iterEdges(function(e) {
+    if (e.attr.edge_type == "am") {
+      var app_id = e.target,
+          mod_id = e.source;
+      app_nid_to_mod_nids[app_id].push(mod_id);
+      mod_id_to_app_id[mod_id] = app_id;
+    }
+  });
+
+  // Fill app_nid_to_eids.
+  si.iterEdges(function(e) {
+    // Two nodes are in the same app.
+    if (e.attr.edge_type == "lmm") {
+      var app_id = mod_id_to_app_id[e.source];
+      app_nid_to_eids[app_id].push(e.id);
+    }
+  });
+  // END filling of app_nid_to_mod_nids, mod_id_to_app_id and app_nid_to_eids.
+  
+
+  si.applicationIds2modulesIds = function(app_ids)
+  {
+      var mod_ids = [];
+      for (var i = 0, l = app_ids.length; i < l; i++) {
+        mod_ids = mod_ids.concat(app_nid_to_mod_nids[ app_ids[i] ]);
+      }
+      return mod_ids;
+  }
+
+
 
   $("#edge-direction-selector a").click(function(e) {
     if ($("body").hasClass("source-color"))
@@ -1182,24 +1316,21 @@ relatio.initWorld = function() {
   var calculateMinSelectedNodeSet = function(isInSet) {
     var selectedNodeInfo = [];
     si.iterNodes(function(n) {
-      switch (n.attr.node_type) {
-        case "app":
-          var moduleIds = si.applicationIds2modulesIds([n.id]);
-          var moduleNodes = si.getNodes(moduleIds);
-          var selectedModNodes = moduleNodes.filter(isInSet);
-          if (moduleNodes.length == selectedModNodes.length)
+      var moduleIds = si.applicationIds2modulesIds([n.id]);
+      var moduleNodes = si.getNodes(moduleIds);
+      var selectedModNodes = moduleNodes.filter(isInSet);
+      if (moduleNodes.length == selectedModNodes.length)
+      {
+          // All module nodes are selected. The result is an application node.
+          selectedNodeInfo.push({type: "app", name: n.label});
+      } else {
+          for (var i = 0; i < selectedModNodes.length; i++)
           {
-              // All module nodes are selected. The result is an application node.
-              selectedNodeInfo.push({type: "app", name: n.label});
-          } else {
-              for (var i = 0; i < selectedModNodes.length; i++)
-              {
-                  var mn = selectedModNodes[i];
-                  selectedNodeInfo.push({type: "module", name: mn.label});
-              }
+              var mn = selectedModNodes[i];
+              selectedNodeInfo.push({type: "module", name: mn.label});
           }
       }
-    });
+    }, application_ids);
     console.dir(selectedNodeInfo);
     return selectedNodeInfo;
   }
@@ -1229,6 +1360,7 @@ relatio.initWorld = function() {
             timeout: 3000});
       return false;
     }
+    return; // TODO
 
     $.ajax({
         async: false,

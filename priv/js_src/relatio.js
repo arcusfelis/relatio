@@ -12,6 +12,35 @@ sigma.publicPrototype.showNodes = function(node_ids) {
    }, node_ids);
 }
 
+sigma.publicPrototype.showEdges = function(edge_ids, group_name) {
+   // If the group name is specified.
+   if (group_name)
+   {
+     this._index = this._index || [];
+     var idx = this._index;
+    
+     // Hide edges that were previously registered under the name.
+     if (idx[group_name])
+     {
+         var old_edge_ids = idx[group_name];
+         this.iterEdges(function(e) {
+            e.hidden = true;
+         }, old_edge_ids);
+     }
+    
+     idx[group_name] = edge_ids;
+  }
+
+   this.iterEdges(function(e) {
+      e.hidden = false;
+   }, edge_ids);
+}
+
+sigma.publicPrototype.hideEdges = function(edge_ids) {
+   this.iterEdges(function(e) {
+      e.hidden = false;
+   }, edge_ids);
+}
 
 sigma.publicPrototype.borderNodes = function(onlyVisibleNodes) {
    var topNode, bottomNode, leftNode, rightNode;

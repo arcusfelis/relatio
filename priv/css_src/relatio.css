@@ -434,6 +434,7 @@ body.world li {
     font-size: 16pt;
     position: relative;
     content: "\2610"; // &#9744;
+    cursor: pointer;
 }
 .checkbox.selected:before {
     content: "\2611"; // &#9744;
