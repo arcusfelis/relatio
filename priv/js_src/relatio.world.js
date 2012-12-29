@@ -621,6 +621,7 @@ relatio.initWorld = function() {
         break;
     }
 
+    cc = u.rewriteCharCode(cc, kc);
     
     switch (cc) {
       case charCodes.ZERO:
@@ -756,6 +757,7 @@ relatio.initWorld = function() {
     }
     if ($("input[type=text]:focus").length)
       return true;
+
     
     switch (cc) {
       case charCodes.WHITESPACE:
@@ -931,6 +933,7 @@ relatio.initWorld = function() {
         break;
     }
 
+    cc = u.rewriteCharCode(cc, kc);
 
     switch (cc) {
       case charCodes.w:
@@ -1360,7 +1363,6 @@ relatio.initWorld = function() {
             timeout: 3000});
       return false;
     }
-    return; // TODO
 
     $.ajax({
         async: false,
@@ -1375,6 +1377,7 @@ relatio.initWorld = function() {
               var data = JSON.parse(json);
               var id = data.node_set_id;
 //            console.log("Save the node set under id = " + id);
+              // Redirect the user on the next page.
               window.location.assign("detail.html?id=" + id);
             }
         }

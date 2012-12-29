@@ -79,7 +79,7 @@ generate_xml(Nodes) ->
             inferno_server:add_application(Info, kernel,   Dir3),
             inferno_server:add_application(Info, mnesia,   Dir4),
             inferno_server:add_application(Info, snmp,     Dir5),
-            erlang:register(inferno_server, self()),
+            erlang:register(inferno_server, Info),
             Info;
         Info ->
             Info

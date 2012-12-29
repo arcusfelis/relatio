@@ -782,7 +782,11 @@ relatio.keyBoard.keyCodes = {
     SHIFT:      16,
     TAB:        9,
     PAGEDOWN:   34,
-    PAGEUP:     33
+    PAGEUP:     33,
+    LEFT:       37,
+    UP:         38,
+    RIGHT:      39,
+    DOWN:       40
 };
 relatio.keyBoard.charCodes = {
     H:        72,
@@ -833,6 +837,32 @@ relatio.utils.nextNode = function(offset, id, ids)
   return ids[new_index];
 };
 
+
+// Set key aliases.
+relatio.utils.rewriteCharCode = function(cc, kc)
+{
+    var K = relatio.keyBoard.keyCodes;
+    var C = relatio.keyBoard.charCodes;
+    switch (kc)
+    {
+      case K.LEFT:
+        cc = C.h;
+        break;
+
+      case K.RIGHT:
+        cc = C.l;
+        break;
+
+      case K.UP:
+        cc = C.k;
+        break;
+
+      case K.DOWN:
+        cc = C.j;
+        break;
+    }
+    return cc;
+};
 
 (function($) {
   $.expr[":"].onScreen = function(elem) {

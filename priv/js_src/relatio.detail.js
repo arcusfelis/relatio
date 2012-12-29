@@ -478,6 +478,7 @@ relatio.initDetail = function(nodeSetId) {
         break;
     }
 
+    cc = u.rewriteCharCode(cc, kc);
     
     switch (cc) {
       case charCodes.ZERO:
