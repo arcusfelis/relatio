@@ -220,6 +220,16 @@ relatio.initDetail = function(nodeSetId) {
       case "module":
         var activeHeaderBlock = $("#selected-module-elem-info").show();
         var m_elem = $(".module-name", active_header_block).empty();
+        var a_elem = $(".app-name", active_header_block).empty();
+        var misc   = $(".misc", active_header_block);
+        if (node.attr.app_name)
+        {
+            var app_name = node.attr.app_name;
+            a_elem.text(app_name);
+            misc.show();
+        } else {
+            misc.hide();
+        }
         nodeToHtmlLink(si, node, m_elem);
         focused_elem = $("a", m_elem);
 
@@ -795,10 +805,18 @@ relatio.initDetail = function(nodeSetId) {
   var firstModNodeId = 3;
 
   // Hide module-function edges.
-  si.iterEdges(function(edge) {
-    if (edge.attr.edge_type == "mf") edge.hidden = true;
+  si.iterEdges(function(e) {
+    if (e.attr.edge_type == "mf") e.hidden = true;
   });
 
+  // Add a node border.
+  // All modules from the same application have the same border color.
+  si.iterNodes(function(n) {
+    if (n.attr.app_color) {
+      n.borderSize = 5;
+      n.borderColor = n.attr.app_color;
+    }
+  });
 
   $("#node-tip-switch a").click(function(e) { 
       $("body").toggleClass("active-tip-switch");
