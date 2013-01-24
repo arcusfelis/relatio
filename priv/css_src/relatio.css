@@ -153,16 +153,6 @@ a {
   user-select: none;
   cursor: default;
 }
-.overlay-node {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  margin-left: -5px;
-  margin-top: -5px;
-  z-index: -1;
-  -moz-border-radius: 5px;
-  border-radius: 5px;
-}
 
 .selected-elem-info {
     font-size: 14pt;
@@ -430,10 +420,12 @@ body.world li {
     cursor: hand;
 }
 
+/* There is 229f (squared minus) */
+/* Miscellaneous Mathematical Symbols-B, http://jrgraphix.net/r/Unicode/?range=2980-29FF */
 .checkbox:before {
     font-size: 16pt;
     position: relative;
-    content: "\2610"; // &#9744;
+    content: "\2610"; // &#9743;
     cursor: pointer;
 }
 .checkbox.selected:before {

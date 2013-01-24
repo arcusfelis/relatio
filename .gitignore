@@ -10,3 +10,4 @@ deps/*
 doc/README.md
 log
 Mnesia.*
+cache.dets

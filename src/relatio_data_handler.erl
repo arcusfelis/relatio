@@ -98,7 +98,7 @@ add_targets(Nodes, Xref, Info) ->
     io:format(user, "AppDirs: ~p~n", [AppDirs]),
     io:format(user, "ModFileNames: ~p~n", [ModFileNames]),
     [xref:add_application(Xref, AppDir)
-     || {_AppName, AppDir} <- AppDirs, AppDir =/= undefined],
+     || {_AppName, Dirs} <- AppDirs, AppDir <- Dirs, AppDir =/= undefined],
     [xref:add_module(Xref, ModFileName)
      || {_ModName, ModFileName} <- ModFileNames, ModFileName =/= undefined],
     ok.
