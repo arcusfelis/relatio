@@ -11,3 +11,4 @@ doc/README.md
 log
 Mnesia.*
 cache.dets
+relatio.config

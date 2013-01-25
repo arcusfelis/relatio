@@ -1,0 +1,9 @@
+[{application, ejabberd, "/home/user/erlang/esl/ejabberd/apps/ejabberd"}
+,{application, stdlib, code:lib_dir(stdlib)}
+,{application, kernel, code:lib_dir(kernel)}
+,{application, mnesia, code:lib_dir(mnesia)}
+,{application, snmp, code:lib_dir(snmp)}
+,{application, stdlib, "/home/user/erlang/otp/lib/stdlib"}
+,{application, kernel, "/home/user/erlang/otp/lib/kernel"}
+,{application, mnesia, "/home/user/erlang/otp/lib/mnesia"}
+,{application, snmp, "/home/user/erlang/otp/lib/snmp"}].
