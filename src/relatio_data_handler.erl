@@ -73,10 +73,13 @@ generate_xml(Nodes) ->
 generate_world_xml() ->
     Xref = relatio_locator:locate_world_xref_server(),
     link(Xref),
+    Info = relatio_locator:locate_world_inferno_server(),
+    link(Info),
     try
-        gexf:to_string(gexf_xref_world:generate(Xref))
+        gexf:to_string(gexf_xref_world:generate(Xref, Info))
     after 
-        unlink(Xref)
+        unlink(Xref),
+        unlink(Info)
     end.
 
 
