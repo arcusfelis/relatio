@@ -950,7 +950,7 @@ relatio.initDetail = function(nodeSetId) {
 
 
 
-  $("#search-field").keydown(function(e) {
+  $("#search-field").on("keypress.relatioSearchFieldHandler", function(e) {
     e.stopPropagation();
     switch (e.keyCode)
     {
