@@ -6,4 +6,8 @@
 ,{application, stdlib, "/home/user/erlang/otp/lib/stdlib"}
 ,{application, kernel, "/home/user/erlang/otp/lib/kernel"}
 ,{application, mnesia, "/home/user/erlang/otp/lib/mnesia"}
-,{application, snmp, "/home/user/erlang/otp/lib/snmp"}].
+,{application, snmp, "/home/user/erlang/otp/lib/snmp"}
+,{application, meshup, "/home/user/erlang/klarna/meshup"}
+,{application, tulib, "/home/user/erlang/klarna/meshup/deps/tulib"}
+,{application, proper, "/home/user/erlang/pbt/proper"}
+].

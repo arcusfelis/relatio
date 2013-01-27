@@ -11,13 +11,35 @@ Web UI for Erlang Xref.
 Installation and building
 -------------------------
 
+.. code-block::
+
+    git clone git://github.com/arcusfelis/relatio.git
+    rebar get-deps compile
+    cp relatio.config.example relatio.config
+
+Edit ``relatio.config``.
+
+.. code-block::
+
+    ./start-dev.sh
+    relatio_db:up().
+
+Open http://127.0.0.1:2080
+
+
+The next commands are used to run this program after the initial installation.
+
+.. code-block::
+
+    ./start-dev.sh
+
 Open http://127.0.0.1:2080
 
 
 Keyboard Shortcuts
 ------------------
 
-Keys h, j, k, l are used for moving as in Vim:
+Keys h, j, k, l are used for navigation as in Vim:
 
 - ``h`` - left;
 - ``j`` - up;
@@ -27,7 +49,7 @@ Keys h, j, k, l are used for moving as in Vim:
 - ``n`` - select the next module or function node;
 - ``N`` - select the previous module or function node.
 
-Scaling:
+Canvas scaling:
 
 - ``+`` - zoom in;
 - ``-`` - zoom out;

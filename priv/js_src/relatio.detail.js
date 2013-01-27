@@ -940,7 +940,7 @@ relatio.initDetail = function(nodeSetId) {
     switch (e.keyCode)
     {
       case keyCodes.ESCAPE:
-      closeSearchSidebar();
+      $(this).blur();
     }
   });
   $("#search-field").keyup(tryToSearch);

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<title>Relatio</title>
 <link href="css_src/relatio.css" rel="stylesheet" type="text/css"/>
 
 <script src="js_lib/sigma.min.js" type="text/javascript"></script>
@@ -33,6 +34,11 @@ $(function() {
   <div id="container">
 
     <div id="top-panel">
+        <span id="open-detalize" class="disable-mouse-selection sub-block">
+          <a tabindex="0" class="header-closed">Detalize&hellip;</a>
+          <a tabindex="0" class="header-opened">Detalize:</a>
+        </span>
+        <span class="delim">|</span>
         <span id="noise-switch" 
               class="disable-mouse-selection active-block sub-block">
           <a tabindex="0" class="header-closed"
@@ -78,11 +84,6 @@ $(function() {
               title="Set the edge color of the target node.">S</a>
           <a tabindex="0" id="target-color"
               title="Set the edge color of the source node.">T</a>
-        </span>
-        <span class="delim">|</span>
-        <span id="open-detalize" class="disable-mouse-selection sub-block">
-          <a tabindex="0" class="header-closed">Detalize&hellip;</a>
-          <a tabindex="0" class="header-opened">Detalize:</a>
         </span>
     </div>
 
