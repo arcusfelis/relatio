@@ -402,12 +402,12 @@ a {
     z-index: -1;
 }
 
-#function-list li
+.function-block li
 {
     list-style-type: circle;
 }
 
-#function-list li.is-exported
+.function-block li.is-exported
 {
     list-style-type: disc;
 }

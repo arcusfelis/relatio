@@ -33,9 +33,11 @@ sigma.publicPrototype.parseGexf = function(gexfPath) {
           title = attributeNode.getAttribute('title'),
           type = attributeNode.getAttribute('type');
         
-        var attribute = {title:title, type:type};
+        var is_array = /\[\]$/.test(title);
+        if (is_array)
+          title = title.substr(0, title.length-2);
+        var attribute = {title:title, type:type, is_array: is_array};
         nodesAttributes[id] = attribute;
-        
       }
     } else if(attributesNode.getAttribute('class') == 'edge'){
       var attributeNodes = attributesNode.getElementsByTagName('attribute');  // The list of xml nodes 'attribute' (no 's')
@@ -113,7 +115,24 @@ sigma.publicPrototype.parseGexf = function(gexfPath) {
         var attr = attvalueNode.getAttribute('for');
         var val = attvalueNode.getAttribute('value');
         if (nodesAttributes[attr])
-            attr = nodesAttributes[attr].title;
+        {
+            if (nodesAttributes[attr].is_array)
+            {
+                attr = nodesAttributes[attr].title;
+
+                // Init, if undefined.
+                if (!node[attr])
+                    node[attr] = [];
+
+                node[attr].push(val);
+            }
+            else
+            {
+                attr = nodesAttributes[attr].title;
+                node[attr] = val;
+            }
+        }
+        else
         node[attr] = val;
       }
 

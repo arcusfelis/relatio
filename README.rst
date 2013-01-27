@@ -27,7 +27,7 @@ Edit ``relatio.config``.
 Open http://127.0.0.1:2080
 
 
-The next commands are used to run this program after the initial installation.
+The next commands are used to run this program after initial installation.
 
 .. code-block::
 

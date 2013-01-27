@@ -50,15 +50,6 @@ relatio.initDetail = function(nodeSetId) {
 
 
 
-  function exportedFunctionsCount(function_nids)
-  {
-    var count = 0;
-    si.iterNodes(function(node) {
-        if (node.attr.is_exported) count++;
-    }, function_nids);
-    return count;
-  }
-
   // Instanciate sigma.js and customize rendering :
   var si = sigma.init(document.getElementById('graph-main')).drawingProperties({
     defaultLabelColor: '#fff',
@@ -338,15 +329,39 @@ relatio.initDetail = function(nodeSetId) {
 
     if (function_node_ids.length > 0)
     {
-      var ul_in  = nodeIdsToHtml(si, function_node_ids);
-      $("#function-list", pane).empty().append(ul_in);
-      $(".function-count", pane).text(exportedFunctionsCount(function_node_ids)
-                       + "/" + function_node_ids.length);
-      $("#functions", pane).show();
+      var callback_fun_ids = [],
+          api_fun_ids = [],
+          int_fun_ids = [];
+      si.iterNodes(function(node) {
+          var is_callback = !!node.attr.behaviours;
+          if (is_callback)
+            callback_fun_ids.push(node.id);
+          else if (node.attr.is_exported)
+            api_fun_ids.push(node.id);
+          else 
+            int_fun_ids.push(node.id);
+      }, function_node_ids);
+
+      var callback_ul = nodeIdsToHtml(si, callback_fun_ids);
+      var api_ul      = nodeIdsToHtml(si, api_fun_ids);
+      var int_ul      = nodeIdsToHtml(si, int_fun_ids);
+
+      $("#exported-function-list", pane).empty().append(api_ul);
+      $(".exported-function-count", pane).text(api_fun_ids.length);
+      $("#exported-functions", pane).show();
+
+      $("#private-function-list", pane).empty().append(int_ul);
+      $(".private-function-count", pane).text(int_fun_ids.length);
+      $("#private-functions", pane).show();
+
+      $("#callback-function-list", pane).empty().append(callback_ul);
+      $(".callback-function-count", pane).text(callback_fun_ids.length);
+      $("#callback-functions", pane).show();
     }
     else
     {
-      $("#functions", pane).hide();
+      $("#exported-functions, #private-functions, #callback-functions", 
+        pane).hide();
     }
     openDirectionSidebar();
 

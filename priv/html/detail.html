@@ -103,15 +103,43 @@ $(function() {
         </div>
         -->
 
-        <div id="functions" class="sub-block active-block">
+        <div id="exported-functions" class="sub-block active-block function-block">
             <div class="sub-block-header">
-                <a tabindex="0" class="header-closed">Functions&hellip;</a>
-                <a tabindex="0" class="header-opened">Functions:</a>
-                <span class="function-count header-count-info"
-                    title="Exported function count / Total function count">
+                <a tabindex="0" class="header-closed">
+                    API functions&hellip;</a>
+                <a tabindex="0" class="header-opened">
+                    API functions:</a>
+                <span class="exported-function-count header-count-info"
+                    title="Exported function count">
                 </span>
             </div>
-            <div id="function-list" class="content-block"></div>
+            <div id="exported-function-list" class="content-block"></div>
+        </div>
+
+        <div id="private-functions" class="sub-block active-block function-block">
+            <div class="sub-block-header">
+                <a tabindex="0" class="header-closed">
+                    Private functions&hellip;</a>
+                <a tabindex="0" class="header-opened">
+                    Private functions:</a>
+                <span class="private-function-count header-count-info"
+                    title="Non-exported function count">
+                </span>
+            </div>
+            <div id="private-function-list" class="content-block"></div>
+        </div>
+
+        <div id="callback-functions" class="sub-block active-block function-block">
+            <div class="sub-block-header">
+                <a tabindex="0" class="header-closed">
+                    Behaviour callbacks&hellip;</a>
+                <a tabindex="0" class="header-opened">
+                    Behaviour callbacks:</a>
+                <span class="callback-function-count header-count-info"
+                    title="Callback function count">
+                </span>
+            </div>
+            <div id="callback-function-list" class="content-block"></div>
         </div>
 
         <div id="directions-out" class="sub-block active-block">
@@ -146,7 +174,7 @@ $(function() {
                 <div id="module-list" class="content-block"></div>
             </div>
 
-            <div id="functions" class="sub-block active-block">
+            <div id="functions" class="sub-block active-block function-block">
                 <div class="sub-block-header">
                     <a tabindex="0" class="header-closed">Functions&hellip;</a>
                     <a tabindex="0" class="header-opened">Functions:</a>
