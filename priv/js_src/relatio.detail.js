@@ -346,17 +346,38 @@ relatio.initDetail = function(nodeSetId) {
       var api_ul      = nodeIdsToHtml(si, api_fun_ids);
       var int_ul      = nodeIdsToHtml(si, int_fun_ids);
 
-      $("#exported-function-list", pane).empty().append(api_ul);
-      $(".exported-function-count", pane).text(api_fun_ids.length);
-      $("#exported-functions", pane).show();
+      if (api_fun_ids.length)
+      {
+          $("#exported-function-list", pane).empty().append(api_ul);
+          $(".exported-function-count", pane).text(api_fun_ids.length);
+          $("#exported-functions", pane).show();
+      }
+      else
+      {
+          $("#exported-functions", pane).hide();
+      }
 
-      $("#private-function-list", pane).empty().append(int_ul);
-      $(".private-function-count", pane).text(int_fun_ids.length);
-      $("#private-functions", pane).show();
+      if (int_fun_ids.length)
+      {
+          $("#private-function-list", pane).empty().append(int_ul);
+          $(".private-function-count", pane).text(int_fun_ids.length);
+          $("#private-functions", pane).show();
+      }
+      else
+      {
+          $("#private-functions", pane).hide();
+      }
 
-      $("#callback-function-list", pane).empty().append(callback_ul);
-      $(".callback-function-count", pane).text(callback_fun_ids.length);
-      $("#callback-functions", pane).show();
+      if (callback_fun_ids.length)
+      {
+          $("#callback-function-list", pane).empty().append(callback_ul);
+          $(".callback-function-count", pane).text(callback_fun_ids.length);
+          $("#callback-functions", pane).show();
+      }
+      else
+      {
+          $("#callback-functions", pane).hide();
+      }
     }
     else
     {
