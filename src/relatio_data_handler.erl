@@ -14,7 +14,11 @@ handle(Req@, State) ->
     {Path, Req@} = cowboy_http_req:path_info(Req@),
     case Path of
         [<<"world.gexf">>] ->
+%           eprof:start_profiling([self()]),
             {ok, Req@} = cowboy_http_req:reply(200, [], generate_world_xml(), Req@),
+%           eprof:stop_profiling(),
+%           eprof:log("eprof.log"),
+%           eprof:analyze([total]),
             {ok, Req@, State};
         [<<"v-e-m.gexf">>] ->
             {SetIdBin, Req@} = cowboy_http_req:qs_val(<<"node_set_id">>, Req@),

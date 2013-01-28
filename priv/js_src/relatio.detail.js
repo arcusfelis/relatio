@@ -245,6 +245,19 @@ relatio.initDetail = function(nodeSetId) {
         current_node_ids = moduleIds2functionsIds(si, [parent_node.id]);
     }
 
+    var behaviour_misc = $(".behaviour-misc", active_header_block);
+    if (node.attr.behaviours && node.attr.behaviours.length)
+    {
+        var behaviour_name = $(".behaviour-name", active_header_block);
+        var bs = node.attr.behaviours;
+        var bs_str = bs.join(", ");
+        behaviour_name.text(bs_str);
+        behaviour_misc.show();
+    }
+    else
+    {
+        behaviour_misc.hide();
+    }
 
     switch (node.attr.node_type)
     {
@@ -445,7 +458,7 @@ relatio.initDetail = function(nodeSetId) {
         active_node_history.reset();
 
     current_node_id = undefined;
-  }
+  };
 
 
   var openSearchSidebar = function() {

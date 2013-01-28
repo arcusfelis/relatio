@@ -159,7 +159,7 @@ a {
     text-align: right;
     padding: 6px;
 }
-.misc {
+.misc, .behaviour-misc {
     font-size: 80%;
     /* For new line */
     display: block;

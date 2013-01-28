@@ -12,3 +12,4 @@ log
 Mnesia.*
 cache.dets
 relatio.config
+eprof
