@@ -1,9 +1,10 @@
-
 -module(relatio_sup).
 -behaviour(supervisor).
 
 -export([start_link/0]). %% API.
 -export([init/1]). %% supervisor.
+%% private
+-export([start_inferno/0]).
 
 -define(SUPERVISOR, ?MODULE).
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
@@ -17,4 +18,22 @@ start_link() ->
 %% supervisor.
 
 init([]) ->
-	{ok, {{one_for_one, 10, 10}, []}}.
+    InfoSpec = {info, {?MODULE, start_inferno, []},
+                      transient, 5000, worker, []},
+	{ok, {{one_for_one, 10, 10}, [InfoSpec]}}.
+
+
+start_inferno() ->
+    {ok, Info} = inferno_server:start_link([]),
+    {ok, B} = file:read_file("relatio.config"),
+    S = binary_to_list(B),
+    {ok, Tokens, _} = erl_scan:string(S),
+    {ok, [Form]} = erl_parse:parse_exprs(Tokens),
+    {value, Value, _} = erl_eval:expr(Form, []),
+    io:format(user, "Config: ~p~n", [Value]),
+    [handle_config_command(X, Info) || X <- Value],
+    erlang:register(inferno_server, Info),
+    {ok, Info}.
+
+handle_config_command({application, Name, Dir}, Info) ->
+    inferno_server:add_application(Info, Name, Dir).
