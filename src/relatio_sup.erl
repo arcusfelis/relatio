@@ -4,7 +4,7 @@
 -export([start_link/0]). %% API.
 -export([init/1]). %% supervisor.
 %% private
--export([start_inferno/0]).
+-export([start_inferno/0, start_xref/0]).
 
 -define(SUPERVISOR, ?MODULE).
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
@@ -20,7 +20,9 @@ start_link() ->
 init([]) ->
     InfoSpec = {info, {?MODULE, start_inferno, []},
                       transient, 5000, worker, []},
-	{ok, {{one_for_one, 10, 10}, [InfoSpec]}}.
+    XrefSpec = {xref, {?MODULE, start_xref, []},
+                      transient, 5000, worker, []},
+	{ok, {{rest_for_one, 10, 10}, [InfoSpec, XrefSpec]}}.
 
 
 start_inferno() ->
@@ -34,6 +36,16 @@ start_inferno() ->
     [handle_config_command(X, Info) || X <- Value],
     erlang:register(inferno_server, Info),
     {ok, Info}.
+
+
+start_xref() ->
+    {ok, Xref} = xref:start(relatio_world_xref),
+    link(Xref),
+    Info = relatio_locator:locate_world_inferno_server(),
+    true = is_pid(Info),
+    inferno_server:add_xref_handler(Info, Xref),
+    {ok, Xref}.
+
 
 handle_config_command({application, Name, Dir}, Info) ->
     inferno_server:add_application(Info, Name, Dir).
