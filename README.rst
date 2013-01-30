@@ -36,6 +36,50 @@ The next commands are used to run this program after initial installation.
 Open http://127.0.0.1:2080
 
 
+Applications' graph (or world graph)
+------------------------------------
+
+This diagram shows connections beetween applications. Modules and applications
+are represented as nodes and calls beetween them are edges.
+Each application has a set of modules around it.
+Only nodes with connections are shown.
+
+Detalization
+------------
+
+Button ``Detalize...`` opens a window for building a modules' graph.
+The idea of this operation is building a detail graph for a *part* of the
+application graph. 
+
+*Caution:* If you select too many nodes, than the result graph will be
+useless and nodes will overlap.
+
+
+Modules' graph (or detail graph)
+--------------------------------
+
+Functions modules are represented as nodes and calls beetween them are edges.
+Module nodes from different applications have different border colors.
+Only nodes with connections are shown.
+
+
+Mouse Actions
+-------------
+
+There are actions applicable to canvas elements:
+
+- Click on a node to open the sidebar and to select the node;
+- Use a wheel to scale canvas.
+
+
+There are actions applicable to sidebar elements:
+
+- Click on a node link to focus on a node;
+- Shift+Click on a node link to select the node and to activate information
+  about the node on the sidebar;
+- Click on a sidebar will close the sidebar.
+
+
 Keyboard Shortcuts
 ------------------
 
@@ -85,4 +129,10 @@ Sidebars:
 - ``j`` - up;
 - ``k`` - down;
 - ``l`` and ``Shift+Enter`` - open the focused element.
+
+
+Noise
+-----
+
+If some node has too many edges, the noise filter hides these edges.
 
