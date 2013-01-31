@@ -343,11 +343,15 @@ relatio.initDetail = function(nodeSetId) {
     if (function_node_ids.length > 0)
     {
       var callback_fun_ids = [],
+          test_fun_ids = [],
           api_fun_ids = [],
           int_fun_ids = [];
       si.iterNodes(function(node) {
           var is_callback = !!node.attr.behaviours;
-          if (is_callback)
+          var is_test = !!node.attr.is_test;
+          if (is_test)
+            test_fun_ids.push(node.id);
+          else if (is_callback)
             callback_fun_ids.push(node.id);
           else if (node.attr.is_exported)
             api_fun_ids.push(node.id);
@@ -358,6 +362,7 @@ relatio.initDetail = function(nodeSetId) {
       var callback_ul = nodeIdsToHtml(si, callback_fun_ids);
       var api_ul      = nodeIdsToHtml(si, api_fun_ids);
       var int_ul      = nodeIdsToHtml(si, int_fun_ids);
+      var test_ul     = nodeIdsToHtml(si, test_fun_ids);
 
       if (api_fun_ids.length)
       {
@@ -390,6 +395,17 @@ relatio.initDetail = function(nodeSetId) {
       else
       {
           $("#callback-functions", pane).hide();
+      }
+
+      if (test_fun_ids.length)
+      {
+          $("#test-function-list", pane).empty().append(test_ul);
+          $(".test-function-count", pane).text(test_fun_ids.length);
+          $("#test-functions", pane).show();
+      }
+      else
+      {
+          $("#test-functions", pane).hide();
       }
     }
     else
