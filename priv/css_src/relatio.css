@@ -40,7 +40,7 @@ html, body {
   z-index: 9000;
   background: #000;
   color: #FFF;
-  width: 300px; 
+  width: 310px; 
   top: 0px; 
   bottom: 0px;
   position: absolute;
@@ -60,7 +60,7 @@ html, body {
 
 
 #search-results {
-  width: 300px; 
+  width: 310px; 
   position: absolute;
   bottom: 0px; 
   top: 50px; 
@@ -71,7 +71,7 @@ html, body {
 #search-pane { 
   display: none;
   background: #000;
-  width: 300px; 
+  width: 310px; 
   top: 0px; 
   bottom: 0px; 
   position: absolute;
