@@ -10,4 +10,5 @@
 ,{application, meshup, "/home/user/erlang/klarna/meshup"}
 ,{application, tulib, "/home/user/erlang/klarna/meshup/deps/tulib"}
 ,{application, proper, "/home/user/erlang/pbt/proper"}
+,{application, etorrent_core, "/home/user/erlang/torrent/etorrent_core"}
 ].

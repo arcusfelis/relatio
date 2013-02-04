@@ -59,8 +59,8 @@ relatio.initWorld = function() {
   var keyCodes = relatio.keyBoard.keyCodes,
       charCodes = relatio.keyBoard.charCodes;
 
+  var MIN_SEARCH_QUERY_LEN = 2;
   var self = this, u = this.utils;
-  var MIN_IMPORTANT_SIZE = 9;
 
   var wm = new WindowManager();
   var mainWindow = new Window(false); // visible
@@ -1056,7 +1056,7 @@ relatio.initWorld = function() {
     var pane = $("#search-results");
 
     // skip, if it is too short
-    if (needle.length < 4) {
+    if (needle.length < MIN_SEARCH_QUERY_LEN) {
       closeSearchSidebar(true);
       return;
     }
