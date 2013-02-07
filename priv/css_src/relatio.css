@@ -414,6 +414,9 @@ a {
 
 body.world li {
     list-style-type: none;
+    overflow: hidden; 
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .checkbox {
@@ -424,12 +427,13 @@ body.world li {
 /* Miscellaneous Mathematical Symbols-B, http://jrgraphix.net/r/Unicode/?range=2980-29FF */
 .checkbox:before {
     font-size: 16pt;
+    /* Handle overflow */
     position: relative;
-    content: "\2610"; // &#9743;
+    content: "\2610"; /* &#9743; */
     cursor: pointer;
 }
 .checkbox.selected:before {
-    content: "\2611"; // &#9744;
+    content: "\2611"; /* &#9744; */
 }
 
 .checkbox:hover {

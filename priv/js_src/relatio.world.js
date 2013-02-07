@@ -1128,7 +1128,9 @@ relatio.initWorld = function() {
   $("#search-field").keyup(tryToSearch);
   $("#search-results, #graph-directions").jScrollPane({
       trackClickRepeatFreq: 20,
-      enableKeyboardNavigation: false
+      enableKeyboardNavigation: false,
+      horizontalDragMaxWidth: 0,
+      contentWidth: '0px'
   });
 
 

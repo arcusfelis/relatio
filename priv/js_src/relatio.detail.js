@@ -656,6 +656,14 @@ relatio.initDetail = function(nodeSetId) {
     var cc = e.charCode;
 
     switch (kc) {
+      case keyCodes.PAGEUP:
+      case keyCodes.PAGEDOWN:
+        var dir = kc == keyCodes.PAGEUP ? 0.5 : -0.5;
+        var p = this.pane;
+        p.data("jsp").scrollByY(-p.innerHeight() * dir, false);
+        $("a:visible:onScreen:first", this.pane).focus();
+        break;
+
       case keyCodes.ESCAPE:
         if (isDirectionSidebarOpen())
           closeDirectionSidebar();
@@ -1009,7 +1017,12 @@ relatio.initDetail = function(nodeSetId) {
     }
   });
   $("#search-field").keyup(tryToSearch);
-  $("#search-results, #graph-directions").jScrollPane({trackClickRepeatFreq: 20});
+  $("#search-results, #graph-directions").jScrollPane({
+      trackClickRepeatFreq: 20,
+      enableKeyboardNavigation: false,
+      horizontalDragMaxWidth: 0,
+      contentWidth: '0px'
+  });
 
 
 
