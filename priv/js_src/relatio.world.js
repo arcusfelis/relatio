@@ -385,6 +385,7 @@ relatio.initWorld = function() {
                 // The selected node is called by the iterated node.
                 rcpnt_node_ids.push(e.source);
               };
+            break;
             case "lmm":
               if (~ids.indexOf(e.source)) {
                 // This edge is out.

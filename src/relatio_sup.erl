@@ -48,4 +48,6 @@ start_xref() ->
 
 
 handle_config_command({application, Name, Dir}, Info) ->
-    inferno_server:add_application(Info, Name, Dir).
+    inferno_server:add_application(Info, Name, Dir);
+handle_config_command({application, Name, Dir, Params}, Info) ->
+    inferno_server:add_application(Info, Name, Dir, Params).

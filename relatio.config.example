@@ -11,4 +11,7 @@
 ,{application, tulib, "/home/user/erlang/klarna/meshup/deps/tulib"}
 ,{application, proper, "/home/user/erlang/pbt/proper"}
 ,{application, etorrent_core, "/home/user/erlang/torrent/etorrent_core"}
+,{application, rabbit, "/home/user/erlang/rabbitmq/rabbitmq-server"}
+,{application, zotonic, "/home/user/erlang/web/zotonic", 
+    [{source_dirs, [src, modules]}]}
 ].
