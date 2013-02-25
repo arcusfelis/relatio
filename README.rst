@@ -2,6 +2,7 @@ Relatio
 =======
 
 Web UI for Erlang Xref.
+This program display interaction beetween modules from different applications.
 
 **License**: MIT
 
@@ -18,6 +19,11 @@ Installation and building
     cp relatio.config.example relatio.config
 
 Edit ``relatio.config``.
+
+This file contain a list of applications, that we want to analyse.
+The format is: ``{application, AppName, DirName}``.
+For example,  ``{application, stdlib, code:lib_dir(stdlib)}`` or
+``{application, proper, "/home/user/erlang/proper"}``.
 
 .. code-block::
 
@@ -47,7 +53,7 @@ Only nodes with connections are shown.
 Detalization
 ------------
 
-Button ``Detalize...`` opens a window for building a modules' graph.
+Button ``Detalize...`` opens a window for building a module graph.
 The idea of this operation is building a detail graph for a *part* of the
 application graph. 
 
@@ -55,10 +61,10 @@ application graph.
 useless and nodes will overlap.
 
 
-Modules' graph (or detail graph)
---------------------------------
+Module graph (or detail graph)
+------------------------------
 
-Functions modules are represented as nodes and calls beetween them are edges.
+Functions and modules are represented as nodes and calls beetween them are edges.
 Module nodes from different applications have different border colors.
 Only nodes with connections are shown.
 
@@ -88,7 +94,7 @@ Keys h, j, k, l are used for navigation as in Vim:
 - ``h`` - left;
 - ``j`` - up;
 - ``k`` - down;
-- ``l`` - right.
+- ``l`` - right;
 
 - ``n`` - select the next module or function node;
 - ``N`` - select the previous module or function node.
